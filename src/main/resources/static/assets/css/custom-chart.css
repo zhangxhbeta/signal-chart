@@ -1,14 +1,10 @@
 /*自定义页面样式*/
 /*@author zhangxh*/
 
-/*布局样式*/
+/*主要元素布局样式*/
 
 #toolbar {
   min-height: 30px;
-}
-
-#chart {
-  min-height: 320px;
 }
 
 #detail {
