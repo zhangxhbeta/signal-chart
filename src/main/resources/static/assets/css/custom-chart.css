@@ -1,3 +1,43 @@
+/*自定义页面样式*/
+/*@author zhangxh*/
+
+/*布局样式*/
+
+#toolbar {
+  min-height: 30px;
+}
+
+#chart {
+  min-height: 320px;
+}
+
+#detail {
+  overflow: scroll;
+  margin-bottom: 0;
+}
+
+#detail .table {
+  margin-bottom: 0;
+}
+
+#footer {
+  min-height: 100%;
+}
+
+#footer .table {
+  margin-bottom: 0;
+}
+
+/*字体*/
+.table {
+  font-size: 9px;
+}
+
+.table > tbody > tr > td, .table > tbody > tr > th {
+  padding: 2px;
+}
+
+/*图表样式*/
 .axis path,
 .axis line {
   fill: none;

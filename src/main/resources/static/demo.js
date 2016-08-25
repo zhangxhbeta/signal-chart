@@ -4,7 +4,20 @@
  * @author zhangxh
  */
 $(function () {
-  var boxHeight = 480;
+  var boxHeight = 320, minDetailHeight = 30;
+
+  function layout() {
+    // 工具栏固定, 图表高度固定, 底栏footer高度固定, 剩余的就是信息详情的高度
+    var availableHeight = $(window).innerHeight() - $('#toolbar').outerHeight() - boxHeight - $('#footer').outerHeight();
+    availableHeight = availableHeight > minDetailHeight ? availableHeight : minDetailHeight;
+    $('#detail').outerHeight(availableHeight);
+  }
+
+  // 计算一次, 然后绑定 resiz 事件处理
+  layout();
+  $( window ).resize(function() {
+    layout();
+  });
 
   // 开始部分，准备svg画布
   var boxWidth, box = d3.select("#chart").node().getBoundingClientRect();

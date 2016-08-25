@@ -22,14 +22,199 @@
 
 <body>
 <div class="container">
-  <small>d3信息: <span id="version"></span></small>
-  <h1 id="title">模版</h1>
+  <!--工具栏-->
+  <div id="toolbar">
+    <div class="btn-toolbar pull-left">
+      <div class="btn-group">
+        <button type="button" class="btn btn-default btn-sm">⬆️</button>
+        <button type="button" class="btn btn-default btn-sm">⬇️</button>
+        <button type="button" class="btn btn-default btn-sm">⬆</button>
+        <button type="button" class="btn btn-default btn-sm">⬇</button>
+        <button type="button" class="btn btn-default btn-sm">⬆</button>
+        <button type="button" class="btn btn-default btn-sm">⬇</button>
+        <button type="button" class="btn btn-default btn-sm">+</button>
+        <button type="button" class="btn btn-default btn-sm">-</button>
+        <button type="button" class="btn btn-default btn-sm">📈</button>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-default btn-sm">s</button>
+        <button type="button" class="btn btn-default btn-sm">e</button>
+        <button type="button" class="btn btn-default btn-sm">n</button>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-default btn-sm">⬆</button>
+        <button type="button" class="btn btn-default btn-sm">⬇</button>
+      </div>
+    </div>
+    <small class="pull-right">d3信息: <span id="version"></span></small>
+  </div>
+
+  <!--图表-->
   <div id='chart'></div>
+
+  <!--信息表格-->
+  <div id="detail" class="well-sm">
+    <table class="table table-bordered">
+      <tbody>
+      <tr>
+        <th>时间</th>
+        <td>2016-08-25 09:50:24</td>
+        <th>机务时间</th>
+        <td>2016-08-25 09:51:38</td>
+        <th>机车号</th>
+        <td>3103</td>
+        <th>车次</th>
+        <td>9108</td>
+        <th>交路号</th>
+        <td>4</td>
+      </tr>
+      <tr>
+        <th>速度(km/h)</th>
+        <td>0</td>
+        <th>站号</th>
+        <td>861</td>
+        <th>信号机号</th>
+        <td>22452</td>
+        <th>本/补</th>
+        <td>本机</td>
+        <th>客/货</th>
+        <td>客车</td>
+      </tr>
+      <tr>
+        <th>降级/监控</th>
+        <td>降级</td>
+        <th>是否调车</th>
+        <td>非调车</td>
+        <th>是否有解</th>
+        <td>无解</td>
+        <th>制式</th>
+        <td>UM71</td>
+        <th>中心频(Hz)</th>
+        <td>230.01999999999998</td>
+      </tr>
+      <tr>
+        <th>低频(Hz)</th>
+        <td>0.2352</td>
+        <th>灯码</th>
+        <td>绿灯</td>
+        <th>感应电压</th>
+        <td>95.3</td>
+        <th>超防</th>
+        <td>11011</td>
+        <th>信号机类型</th>
+        <td>2</td>
+      </tr>
+      <tr>
+        <th>是否绝缘</th>
+        <td>未绝缘</td>
+        <th>上下行</th>
+        <td>无效</td>
+        <th>锁屏频率</th>
+        <td>未锁屏</td>
+        <th>里程(m)</th>
+        <td>0</td>
+        <th>环境温度</th>
+        <td>45.21</td>
+      </tr>
+      <tr>
+        <th>电源电压(V)</th>
+        <td>100.23</td>
+        <th>A板线圈</th>
+        <td>0</td>
+        <th>B板线圈</th>
+        <td>1</td>
+        <th>当前主板</th>
+        <td>A板</td>
+        <th>I II端</th>
+        <td>I端</td>
+      </tr>
+      <tr>
+        <th>I端灯状态</th>
+        <td>正常</td>
+        <th>II端灯状态</th>
+        <td>正常</td>
+        <th>A点灯电源</th>
+        <td>有电</td>
+        <th>B点灯电源</th>
+        <td>有电</td>
+        <th>色灯持续时间(s)</th>
+        <td></td>
+      </tr>
+      <tr>
+        <th>距前方信号机距离</th>
+        <td colspan="4">--</td>
+        <th>应变时间</th>
+        <td colspan="4">--</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!--底部信息-->
+  <div id="footer">
+    <div class="row">
+      <div class="col-md-4">
+        <table class="table table-bordered">
+          <tbody>
+          <tr>
+            <th class="intro-text">主板信息</th>
+            <th>工作状态</th>
+            <th>电源</th>
+          </tr>
+          <tr>
+            <td>主板A</td>
+            <td>正常</td>
+            <td>正常</td>
+          </tr>
+          <tr>
+            <td>主板B</td>
+            <td>有电</td>
+            <td>有电</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-md-8">
+        <table class="table table-bordered">
+          <tbody>
+          <tr>
+            <th class="intro-text">跳线信息</th>
+            <th>25周</th>
+            <th>50周</th>
+            <th>移频</th>
+            <th>UM71</th>
+            <th>电化</th>
+            <th>灵敏度</th>
+          </tr>
+          <tr>
+            <td><b>主板A</b></td>
+            <td>关</td>
+            <td>开</td>
+            <td>1.9模式</td>
+            <td>ZPW2000</td>
+            <td>电化</td>
+            <td>标准灵敏度</td>
+          </tr>
+          <tr>
+            <td><b>主板B</b></td>
+            <td>开</td>
+            <td>关</td>
+            <td>1.9模式</td>
+            <td>ZPW2000</td>
+            <td>电化</td>
+            <td>标准灵敏度</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
 </div>
 <script src="assets/scripts/vendor/jquery/jquery.min.js"></script>
 
-<!--[if lte IE 8]><script src="assets/scripts/vendor/r2d3/r2d3.min.js" charset="utf-8"></script><![endif]-->
+<!--[if lte IE 8]>
+<script src="assets/scripts/vendor/r2d3/r2d3.min.js" charset="utf-8"></script><![endif]-->
 <!--[if gte IE 9]><!-->
 <script src="assets/scripts/vendor/d3/d3.min.js"></script>
 <!--<![endif]-->
