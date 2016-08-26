@@ -1,6 +1,6 @@
 /**
  * 往文档里面的 #chart 里面塞一张堆积图
- * 
+ *
  * @author zhangxh
  */
 $(function () {
@@ -29,65 +29,174 @@ $(function () {
       .style('display', 'block');
   d3.select('#version').html('v' + d3.version);
 
+  var xAxisMax = 200;
   var margin = {
     top: 20,
     right: 20,
     bottom: 30,
-    left: 50
+    left: 150
   };
 
   // svg 画布已准备妥当，开始准备图表元素
   var height = size.height - margin.bottom - margin.top,
       width = size.width - margin.left - margin.right;
+  var gridHeight = height / 50;
+  var gridWidth = width / xAxisMax;
 
-  var parseDate = d3.time.format("%d-%b-%y").parse;
-  var x = d3.time.scale().range([0, width]);
-  var y = d3.scale.linear().range([height, 0]);
-  var xAxis = d3.svg.axis().scale(x).orient("bottom");
-  var yAxis = d3.svg.axis().scale(y).orient("left");
+  // 生成测试数据
+  var dataArray = generateTestData();
 
-  var area = d3.svg.area().x(function(d) {
-    return x(d.date);
-  }).y0(height).y1(function(d) {
-    return y(d.close);
+  // 绘制图表, 感应电压/载频/低频,速度
+  var chartHeight = gridHeight * 20;
+  var maxVoltage = 2000, maxCarrierFrequency = 4000, maxLowFrequency = 40;
+
+  svg.append('text')
+      .attr("x", 0)
+      .attr("y", 12)
+      .attr("dy", ".35em")
+      .text('2000mV');
+
+  svg.append('text')
+      .attr("x", 0)
+      .attr("y", 12 * 2)
+      .attr("dy", ".35em")
+      .text('4000 Hz');
+
+  svg.append('text')
+      .attr("x", 0)
+      .attr("y", 12 * 3)
+      .attr("dy", ".35em")
+      .text('40(Hz/ms)');
+
+  svg.append('text')
+      .attr("x", 0)
+      .attr("y", gridHeight * 10)
+      .attr("dy", ".55em")
+      .text('上电标志');
+
+  var x = d3.scale.linear()
+      .domain([0, xAxisMax])
+      .range([0, width]);
+
+  // 绘制感应电压
+  var yVoltage = d3.scale.linear()
+      .domain([0, maxVoltage])
+      .range([chartHeight, 0]);
+
+  var lineVoltage = d3.svg.line().x(function (d, i) {
+    console.log(i);
+    return x(i);
+  }).y(function (d) {
+    return yVoltage(d.voltage);
   });
 
-  var g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  var groupChart = svg.append('g')
+      .attr('transform', 'translate(' + margin.left + ',0)');
 
-  d3.tsv("data-area.tsv", function(error, data) {
-    data.forEach(function(d) {
-      d.date = parseDate(d.date);
-      d.close = +d.close;
-    });
+  groupChart.selectAll("line.horizontalGrid").data(yVoltage.ticks(4)).enter()
+      .append("line")
+      .attr(
+          {
+            "class":"horizontalGrid",
+            "x1" : 0,
+            "x2" : width,
+            "y1" : function(d){ return yVoltage(d);},
+            "y2" : function(d){ return yVoltage(d);},
+            "fill" : "none",
+            "shape-rendering" : "crispEdges",
+            "stroke" : "gray",
+            "stroke-width" : "1px"
+          });
 
-    x.domain(d3.extent(data, function(d) {
-      return d.date;
-    }));
-    y.domain([0, d3.max(data, function(d) {
-      return d.close;
-    })]);
+  groupChart.selectAll("line.verticalGrid").data(x.ticks(25)).enter()
+      .append("line")
+      .attr(
+          {
+            "class":"verticalGrid",
+            "x1" : function(d){ return x(d);},
+            "x2" : function(d){ return x(d);},
+            "y1" : chartHeight,
+            "y2" : 0,
+            "fill" : "none",
+            "shape-rendering" : "crispEdges",
+            "stroke" : "gray",
+            "stroke-width" : "1px"
+          });
 
-    g.append("path")
-        .datum(data)
-        .attr("class", "area")
-        .attr("d", area);
+  groupChart.append("path")
+      .datum(dataArray)
+      .attr("d", lineVoltage)
+      .style("fill", "none")
+      .style("stroke-width", 1)
+      .style("stroke", '#F00')
+      .style("stroke-opacity", 0.9);
 
-    g.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
+  // 绘制载频
+  var yCarrierFrequency = d3.scale.linear()
+      .domain([0, maxCarrierFrequency])
+      .range([chartHeight, 0]);
 
-    g.append("g")
-        .attr("class", "y axis")
-        .call(yAxis).append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text("价格 (¥)");
+  var lineCarrierFrequency = d3.svg.line().x(function (d, i) {
+    console.log(i);
+    return x(i);
+  }).y(function (d) {
+    return yCarrierFrequency(d.carrierFrequency);
   });
 
-  $( window ).resize(function() {
+  groupChart.append("path")
+      .datum(dataArray)
+      .attr("d", lineCarrierFrequency)
+      .style("fill", "none")
+      .style("stroke-width", 1)
+      .style("stroke", '#00f')
+      .style("stroke-opacity", 0.9);
+
+  // 绘制低频
+  var yLowFrequency = d3.scale.linear()
+      .domain([0, maxLowFrequency])
+      .range([chartHeight, 0]);
+
+  var lineLowFrequency = d3.svg.line().x(function (d, i) {
+    console.log(i);
+    return x(i);
+  }).y(function (d) {
+    return yLowFrequency(d.lowFrequency);
+  });
+
+  groupChart.append("path")
+      .datum(dataArray)
+      .attr("d", lineLowFrequency)
+      .style("fill", "none")
+      .style("stroke-width", 1)
+      .style("stroke", '#0f0')
+      .style("stroke-opacity", 0.9);
+
+  // 绘制灯带
+  var lampBeltHeight = chartHeight + gridHeight;
+
+  svg.append('text')
+      .attr("x", 20)
+      .attr("y", lampBeltHeight)
+      .attr("dy", ".55em")
+      .text('灯码超防');
+
+  var lampBeltGroup = svg.append('g')
+      .attr('transform', 'translate(' + margin.left + ',' + lampBeltHeight + ')');
+
+  var grid = lampBeltGroup.selectAll("g")
+      .data(dataArray)
+      .enter()
+      .append("g")
+      .attr("transform", function (d, i) {
+        return 'translate(' + x(i) + ',0)';
+      });
+
+  grid.append("rect")
+      .attr("width", gridWidth - 1)
+      .attr("height", gridHeight);
+
+  // 对窗口缩放做一下处理
+  $(window).resize(function () {
     var size = calcChartSize();
     $('#chart svg').height(size.height);
 
@@ -99,7 +208,8 @@ $(function () {
   // 详情部分布局
   function layoutDetail(boxHeight) {
     // 工具栏固定, 图表高度固定, 底栏footer高度固定, 剩余的就是信息详情的高度
-    var availableHeight = $(window).innerHeight() - $('#toolbar').outerHeight() - boxHeight - $('#footer').outerHeight();
+    var availableHeight = $(window).innerHeight() - $('#toolbar').outerHeight() - boxHeight - $(
+            '#footer').outerHeight();
     availableHeight = availableHeight > minDetailHeight ? availableHeight : minDetailHeight;
 
     availableHeight -= ieFix; // ie 下面有点滚动条问题
@@ -107,6 +217,7 @@ $(function () {
     $('#detail').outerHeight(availableHeight);
   }
 
+  // 计算图表的大小, 根据容器大小自适应
   function calcChartSize() {
     var boxWidth, box = d3.select("#chart").node().getBoundingClientRect();
     if (!box.width) {
@@ -119,5 +230,43 @@ $(function () {
       width: boxWidth,
       height: Math.floor(boxWidth / aspectRatio)
     }
+  }
+
+  function generateTestData() {
+    var dataArray = [];
+    var carrierFrequencyRandom = 0, lowFrequencyRandom = 0;
+    for (var i = 0; i < xAxisMax; i++) {
+      var lamp = '' + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
+              Math.random())
+                 + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(Math.random());
+      var voltage = Math.round(Math.random() * 1300);
+
+      var carrierFrequency;
+      if (carrierFrequencyRandom == 0) {
+        carrierFrequencyRandom = Math.round(Math.random() * 8);
+        carrierFrequency = Math.round(Math.random() * 3200);
+      } else {
+        carrierFrequency = dataArray[i-1].carrierFrequency;
+        carrierFrequencyRandom -= 1;
+      }
+
+      var lowFrequency;
+      if (lowFrequencyRandom == 0) {
+        lowFrequencyRandom = Math.round(Math.random() * 4);
+        lowFrequency = Math.round(Math.random() * 28);
+      } else {
+        lowFrequency = dataArray[i-1].lowFrequency;
+        lowFrequencyRandom -= 1;
+      }
+
+      dataArray.push({
+                       lamp: lamp,
+                       voltage: voltage,
+                       carrierFrequency: carrierFrequency,
+                       lowFrequency: lowFrequency
+                     });
+    }
+
+    return dataArray;
   }
 });
