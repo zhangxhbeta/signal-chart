@@ -9,6 +9,7 @@
 
 #detail {
   overflow: scroll;
+  overflow-x: hidden;
   margin-bottom: 0;
 }
 
@@ -26,7 +27,7 @@
 
 /*字体*/
 .table {
-  font-size: 9px;
+  font-size: 9pt;
 }
 
 .table > tbody > tr > td, .table > tbody > tr > th {
