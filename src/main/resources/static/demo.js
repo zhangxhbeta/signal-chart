@@ -29,7 +29,7 @@ $(function () {
       .style('display', 'block');
   d3.select('#version').html('v' + d3.version);
 
-  var xAxisMax = 200;
+  var xAxisMax = 400;
   var margin = {
     top: 20,
     right: 20,
@@ -79,19 +79,19 @@ $(function () {
         .attr("x", 0)
         .attr("y", 12)
         .attr("dy", ".35em")
-        .text('2000mV');
+        .text(maxVoltage + 'mV');
 
     svg.append('text')
         .attr("x", 0)
         .attr("y", 12 * 2)
         .attr("dy", ".35em")
-        .text('4000 Hz');
+        .text(maxCarrierFrequency + 'Hz');
 
     svg.append('text')
         .attr("x", 0)
         .attr("y", 12 * 3)
         .attr("dy", ".35em")
-        .text('40(Hz/ms)');
+        .text(maxLowFrequency + '(Hz/ms)');
 
     svg.append('text')
         .attr("x", 0)
@@ -108,7 +108,7 @@ $(function () {
       return d3.svg.axis()
           .scale(x)
           .orient("bottom")
-          .ticks(25);
+          .ticks(30);
     }
     groupChart.append("g")
         .attr("class", "grid")
@@ -143,7 +143,7 @@ $(function () {
         .attr("d", lineVoltage)
         .style("fill", "none")
         .style("stroke-width", 1)
-        .style("stroke", '#F00')
+        .style("stroke", '#d00')
         .style("stroke-opacity", 0.9);
 
     // 绘制载频
@@ -162,7 +162,7 @@ $(function () {
         .attr("d", lineCarrierFrequency)
         .style("fill", "none")
         .style("stroke-width", 1)
-        .style("stroke", '#00f')
+        .style("stroke", '#0d0')
         .style("stroke-opacity", 0.9);
 
     // 绘制低频
@@ -181,7 +181,7 @@ $(function () {
         .attr("d", lineLowFrequency)
         .style("fill", "none")
         .style("stroke-width", 1)
-        .style("stroke", '#0f0')
+        .style("stroke", '#00d')
         .style("stroke-opacity", 0.9);
   }
 
@@ -256,12 +256,12 @@ $(function () {
               Math.random())
                  + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
               Math.random());
-      var voltage = Math.round(Math.random() * 1300);
+      var voltage = Math.round(Math.random() * 800 + 600);
 
       var carrierFrequency;
       if (carrierFrequencyRandom == 0) {
-        carrierFrequencyRandom = Math.round(Math.random() * 8);
-        carrierFrequency = Math.round(Math.random() * 3200);
+        carrierFrequencyRandom = Math.round(Math.random() * 18);
+        carrierFrequency = Math.round(Math.random() * 2900);
       } else {
         carrierFrequency = dataArray[i - 1].carrierFrequency;
         carrierFrequencyRandom -= 1;
@@ -269,8 +269,8 @@ $(function () {
 
       var lowFrequency;
       if (lowFrequencyRandom == 0) {
-        lowFrequencyRandom = Math.round(Math.random() * 4);
-        lowFrequency = Math.round(Math.random() * 28);
+        lowFrequencyRandom = Math.round(Math.random() * 20);
+        lowFrequency = Math.round(Math.random() * 12);
       } else {
         lowFrequency = dataArray[i - 1].lowFrequency;
         lowFrequencyRandom -= 1;
