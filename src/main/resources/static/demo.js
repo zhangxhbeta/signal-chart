@@ -362,6 +362,9 @@ $(function () {
         .scale(x)
         .orient("bottom")
         .tickFormat(function (d, i) {
+          if (d >= dataArray.length) {
+            return '';
+          }
           if (d == 0) {
             return firstDateLabelFormat(dataArray[d].date);
           } else {
