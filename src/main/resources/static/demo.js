@@ -10,17 +10,20 @@ $(function () {
   var minDetailHeight = 30; // 详情区域最小高度 30px
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
-  var gridSize = 42; // 将大图表横向划分为固定的高度单元, 然后方便分配
+  var gridSize = 44; // 将大图表横向划分为固定的高度单元, 然后方便分配
   var xAxisMax = 200; // 图表中展示的数据记录条数
   var margin = {
     top: 5,
-    right: 20,
-    bottom: 15,
+    right: 28,
+    bottom: 25,
     left: 150
   };
   var fontSize = 12;
   var fontSizeOffset = fontSize / 2;
   var labelLeftMargin = 30;
+  var firstDateLabelFormat = d3.time.format('%Y-%m-%d');
+  var dateLabelFormat = d3.time.format("%H:%M:%S");
+
 
   // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
   var size = calcChartSize();
@@ -97,6 +100,9 @@ $(function () {
     return y(d.port12);
   });
 
+  // 绘制 x 轴
+  drawXAxis(margin.top + height, '时间里程');
+
   // 对窗口缩放做一下处理
   $(window).resize(function () {
     var size = calcChartSize();
@@ -146,7 +152,7 @@ $(function () {
       return d3.svg.axis()
           .scale(x)
           .orient("bottom")
-          .ticks(30);
+          .ticks(10);
     }
 
     groupChart.append("g")
@@ -249,7 +255,7 @@ $(function () {
         })
         .style("fill", function (d) {
           var returnColor;
-          var r = d /gridHeight;
+          var r = d / gridHeight;
           if (r === 1) {
             returnColor = "green";
           } else if (r >= 0.4) {
@@ -349,6 +355,33 @@ $(function () {
   }
 
   /**
+   * 绘制 x 轴
+   */
+  function drawXAxis(xAxisOffset, text) {
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .tickFormat(function (d, i) {
+          if (d == 0) {
+            return firstDateLabelFormat(dataArray[d].date);
+          } else {
+            return dateLabelFormat(dataArray[d].date);
+          }
+        });
+
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", xAxisOffset + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text(text);
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(" + margin.left + "," + xAxisOffset + ")")
+        .call(xAxis);
+  }
+
+  /**
    * 详情部分布局
    * @param chartHeight 图表部分计算出来的高度
    */
@@ -386,10 +419,11 @@ $(function () {
    * @returns {Array}
    */
   function generateTestData() {
+    var startDate = new Date().getTime() - 1000 * 60 * 60;
     var dataArray = [];
     var carrierFrequencyRandom = 0, lowFrequencyRandom = 0, seamaphoreRandom = 0,
         insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0;
-    for (var i = 0; i < xAxisMax; i++) {
+    for (var i = 0; i <= xAxisMax; i++) {
       var lamp = '' + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
               Math.random())
                  + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
@@ -468,7 +502,8 @@ $(function () {
                        upDown: upDown,
                        insulation: insulation,
                        ab: ab,
-                       port12: port12
+                       port12: port12,
+                       date: new Date(startDate + i * 1000)
                      });
     }
 
