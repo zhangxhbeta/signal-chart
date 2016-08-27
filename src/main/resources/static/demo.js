@@ -11,16 +11,16 @@ $(function () {
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
   var gridSize = 42; // 将大图表横向划分为固定的高度单元, 然后方便分配
-  var xAxisMax = 400;
+  var xAxisMax = 200; // 图表中展示的数据记录条数
   var margin = {
     top: 5,
     right: 20,
-    bottom: 5,
+    bottom: 15,
     left: 150
   };
   var fontSize = 12;
   var fontSizeOffset = fontSize / 2;
-  var labelLeftMargin = 20;
+  var labelLeftMargin = 30;
 
   // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
   var size = calcChartSize();
@@ -60,7 +60,7 @@ $(function () {
 
   // 绘制灯带
   var lampBeltOffset = chartOffset + chartHeight + gridHeight;
-  drawLampBelt(lampBeltOffset, gridHeight);
+  drawLampBelt(lampBeltOffset, gridHeight * 1.5);
 
   // 绘制信号机
   var y = d3.scale.linear()
@@ -133,7 +133,7 @@ $(function () {
 
     svg.append('text')
         .attr("x", 0)
-        .attr("y", chartOffset + gridHeight * 10)
+        .attr("y", chartOffset + gridHeight * 6)
         .attr("dy", ".55em")
         .text('上电标志');
 
@@ -233,6 +233,33 @@ $(function () {
         .attr("dy", ".55em")
         .text('灯码超防');
 
+    // 绘制当前灯
+    var circleRadii = [gridHeight, gridHeight * 0.4, gridHeight * 0.2];
+    var groupLamp = svg.append('g')
+        .attr('transform', 'translate(0,' + lampBeltOffset + ')');
+
+    groupLamp.selectAll("circle")
+        .data(circleRadii)
+        .enter()
+        .append('circle')
+        .attr("cx", gridHeight)
+        .attr("cy", gridHeight)
+        .attr("r", function (d) {
+          return d;
+        })
+        .style("fill", function (d) {
+          var returnColor;
+          var r = d /gridHeight;
+          if (r === 1) {
+            returnColor = "green";
+          } else if (r >= 0.4) {
+            returnColor = "purple";
+          } else if (r >= 0.2) {
+            returnColor = "red";
+          }
+          return returnColor;
+        });
+
     var lampBeltGroup = svg.append('g')
         .attr('transform', 'translate(' + margin.left + ',' + lampBeltOffset + ')');
 
@@ -246,7 +273,8 @@ $(function () {
 
     grid.append("rect")
         .attr("width", gridWidth - 1)
-        .attr("height", lampBeltHeight);
+        .attr("height", lampBeltHeight)
+        .style("stroke", '#0dd')
   }
 
   /**
@@ -406,7 +434,7 @@ $(function () {
 
       var insulation;
       if (insulationRandom == 0) {
-        insulationRandom = Math.round(Math.random() * 20);
+        insulationRandom = Math.round(Math.random() * 10);
         insulation = Math.round(Math.random());
       } else {
         insulation = dataArray[i - 1].insulation;
