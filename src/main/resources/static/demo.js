@@ -54,7 +54,6 @@ $(function () {
 
   // 生成测试数据
   var dataArray = generateTestData();
-  console.log(dataArray);
 
   // 绘制图表, 感应电压/载频/低频,速度
   var chartOffset = margin.top;
@@ -72,10 +71,11 @@ $(function () {
 
   // 绘制信号机
   var semaphoreOffset = lampBeltOffset + gridHeight * 3;
-  drawSemaphore(semaphoreOffset, '信号机');
+  var semaphoreHeight = gridHeight * 4;
+  drawSemaphore(semaphoreOffset, '信号机', semaphoreHeight);
 
   // 绘制绝缘
-  var insulationOffset = semaphoreOffset + gridHeight * 6;
+  var insulationOffset = semaphoreOffset + semaphoreHeight + gridHeight * 2;
   drawInsulationChairLine(insulationOffset, '绝缘', function (d) {
     return y(d.insulation);
   });
@@ -100,6 +100,38 @@ $(function () {
 
   // 绘制 x 轴
   drawXAxis(margin.top + height, '时间里程');
+
+  // 添加鼠标点击时的指示竖线
+  var selectLine;
+  var drag = d3.behavior.drag();
+  drag.on('drag', function () {
+    var e = d3.mouse(d3.select('#chart').node());
+    var x = adjustX(e[0]);
+    if (selectLine) {
+      selectLine.attr('x1', x)
+          .attr('x2', x);
+    }
+  });
+
+  svg.on('click', function () {
+    var e = d3.mouse(d3.select('#chart').node());
+    var x = adjustX(e[0]);
+
+    if (selectLine) {
+      selectLine.attr('x1', x)
+        .attr('x2', x);
+    } else {
+      selectLine = svg.append('line').attr('x1', x)
+          .attr('y1', margin.top)
+          .attr('x2', x)
+          .attr('y2', size.height)
+          .style('stroke', '#000')
+          .style('stroke-width', '2')
+          .style('cursor', 'ew-resize')
+          .call(drag);
+    }
+
+  });
 
   // 对窗口缩放做一下处理
   $(window).resize(function () {
@@ -352,7 +384,7 @@ $(function () {
         .style("stroke-opacity", 0.9);
   }
 
-  function drawSemaphore(seamaphoreOffset, text) {
+  function drawSemaphore(seamaphoreOffset, text, semaphoreHeight) {
     svg.append('text')
         .attr("x", labelLeftMargin)
         .attr("y", seamaphoreOffset + gridHeight + fontSizeOffset)
@@ -362,11 +394,13 @@ $(function () {
     var g = svg.append('g')
         .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
 
+    var heightUnit = semaphoreHeight / 5;
+
     // 先绘制底线
     g.append('line').attr('x1', 0)
-        .attr('y1', gridHeight * 4)
+        .attr('y1', semaphoreHeight)
         .attr('x2', width)
-        .attr('y2', gridHeight * 4)
+        .attr('y2', semaphoreHeight)
         .style('stroke', '#000');
 
     // 过滤数据
@@ -395,23 +429,45 @@ $(function () {
         });
 
     grid.append("line").attr('x1', 0)
-        .attr('y1', gridHeight)
+        .attr('y1', function (d) {
+          if (d.value.seamaphoreState === 'pass') {
+            return heightUnit + heightUnit / 2;
+          } else {
+            return 0;
+          }
+        })
         .attr('x2', 0)
-        .attr('y2', gridHeight * 4)
+        .attr('y2', semaphoreHeight)
         .style("stroke", '#000');
 
     grid.append('circle')
-        .attr("cx", 4)
-        .attr("cy", gridHeight)
+        .attr("cx", heightUnit / 2)
+        .attr("cy", heightUnit + heightUnit / 2)
         .attr("r", function () {
-          return 4;
+          return heightUnit / 2;
         })
         .style('fill', 'none')
         .style("stroke", '#000');
 
+    // 绘制第二个圈圈, 如果是过信号机那种不用绘制
+    grid.append('circle')
+        .attr("cx", heightUnit / 2)
+        .attr("cy", 0)
+        .attr("r", function () {
+          return heightUnit / 2;
+        })
+        .style('fill', 'none')
+        .style("stroke", function (d) {
+          if (d.value.seamaphoreState === 'pass') {
+            return '#fff';
+          } else {
+            return '#000';
+          }
+        });
+
     grid.append('text')
-        .attr("x", gridWidth)
-        .attr("y", gridHeight * 2 + 3)
+        .attr("x", heightUnit)
+        .attr("y", heightUnit * 3)
         .attr("dy", ".35em")
         .text(function (d) {
           var data = d.value;
@@ -660,4 +716,9 @@ $(function () {
     return dataArray;
   }
 
+  function adjustX(x) {
+    var minWidth = width / xAxisMax;
+    var adjust = x % minWidth;
+    return adjust > minWidth / 2 ? x + minWidth - adjust : x - adjust;
+  }
 });
