@@ -10,7 +10,7 @@ $(function () {
   var minDetailHeight = 30; // 详情区域最小高度 30px
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
-  var gridSize = 44; // 将大图表横向划分为固定的高度单元, 然后方便分配
+  var gridSize = 46; // 将大图表横向划分为固定的高度单元, 然后方便分配
   var xAxisMax = 200; // 图表中展示的数据记录条数
   var margin = {
     top: 5,
@@ -23,7 +23,6 @@ $(function () {
   var labelLeftMargin = 30;
   var firstDateLabelFormat = d3.time.format('%Y-%m-%d');
   var dateLabelFormat = d3.time.format("%H:%M:%S");
-
 
   // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
   var size = calcChartSize();
@@ -55,6 +54,7 @@ $(function () {
 
   // 生成测试数据
   var dataArray = generateTestData();
+  console.log(dataArray);
 
   // 绘制图表, 感应电压/载频/低频,速度
   var chartOffset = margin.top;
@@ -72,12 +72,10 @@ $(function () {
 
   // 绘制信号机
   var semaphoreOffset = lampBeltOffset + gridHeight * 3;
-  drawChairLine(semaphoreOffset, '信号机', function (d) {
-    return y(d.seamaphore);
-  });
+  drawSemaphore(semaphoreOffset, '信号机');
 
   // 绘制绝缘
-  var insulationOffset = semaphoreOffset + gridHeight * 4;
+  var insulationOffset = semaphoreOffset + gridHeight * 6;
   drawInsulationChairLine(insulationOffset, '绝缘', function (d) {
     return y(d.insulation);
   });
@@ -354,6 +352,80 @@ $(function () {
         .style("stroke-opacity", 0.9);
   }
 
+  function drawSemaphore(seamaphoreOffset, text) {
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", seamaphoreOffset + gridHeight + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text(text);
+
+    var g = svg.append('g')
+        .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
+
+    // 先绘制底线
+    g.append('line').attr('x1', 0)
+        .attr('y1', gridHeight * 4)
+        .attr('x2', width)
+        .attr('y2', gridHeight * 4)
+        .style('stroke', '#000');
+
+    // 过滤数据
+    var stationDatas = dataArray.reduce(function (previousValue, currentValue, currentIndex, array) {
+      if (currentIndex != 0) {
+        var prevIndexData = array[currentIndex - 1];
+        if (prevIndexData.seamaphoreNo !== currentValue.seamaphoreNo
+            || prevIndexData.seamaphoreState !== currentValue.seamaphoreState) {
+          // 前一个状态和现在这个不同, 说明需要图表上绘制一下
+          previousValue.push({
+                               index: currentIndex,
+                               value: currentValue
+                             });
+
+        }
+      }
+      return previousValue;
+    }, []);
+
+    var grid = g.selectAll("g")
+        .data(stationDatas)
+        .enter()
+        .append("g")
+        .attr("transform", function (d, i) {
+          return 'translate(' + x(d.index) + ',0)';
+        });
+
+    grid.append("line").attr('x1', 0)
+        .attr('y1', gridHeight)
+        .attr('x2', 0)
+        .attr('y2', gridHeight * 4)
+        .style("stroke", '#000');
+
+    grid.append('circle')
+        .attr("cx", 4)
+        .attr("cy", gridHeight)
+        .attr("r", function () {
+          return 4;
+        })
+        .style('fill', 'none')
+        .style("stroke", '#000');
+
+    grid.append('text')
+        .attr("x", gridWidth)
+        .attr("y", gridHeight * 2 + 3)
+        .attr("dy", ".35em")
+        .text(function (d) {
+          var data = d.value;
+          if (data.seamaphoreState === 'in') {
+            return data.stationName;
+          } else if (data.seamaphoreState == 'out') {
+            return '出站';
+          } else {
+            return data.seamaphoreNo;
+          }
+
+        });
+  }
+
   /**
    * 绘制 x 轴
    */
@@ -424,8 +496,60 @@ $(function () {
   function generateTestData() {
     var startDate = new Date().getTime() - 1000 * 60 * 60;
     var dataArray = [];
-    var carrierFrequencyRandom = 0, lowFrequencyRandom = 0, seamaphoreRandom = 0,
+    var carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
         insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0;
+    var seamaphoreState = 'pass';
+    var seamaphoreRandom = Math.round(Math.random() * 6); // 每隔几个信号机来一个进站出站
+    var seamaphoreNo = Math.round(Math.random() * 50 + 200); // 随机来个开始信号机号码
+    var stationNames = [
+      '温州',
+      '青田',
+      '丽水',
+      '缙云',
+      '永康',
+      '武义',
+      '金华',
+      '义乌',
+      '诸暨',
+      '杭州',
+      '德清西',
+      '长兴南',
+      '宣城',
+      '芜湖',
+      '巢湖',
+      '合肥',
+      '淮南',
+      '阜阳',
+      '亳州',
+      '商丘南',
+      '定陶',
+      '菏泽',
+      '梁山',
+      '阳谷',
+      '聊城',
+      '临清',
+      '清河城',
+      '枣强',
+      '衡水',
+      '辛集',
+      '石家庄北',
+      '太原'
+    ];
+    var startStationNameIndex = Math.round(Math.random() * stationNames.length); // 开始站名
+    var seamaphoreStateRandom = 0;
+
+    function nextStation() {
+      startStationNameIndex++;
+      if (startStationNameIndex >= stationNames.length) {
+        startStationNameIndex = 0;
+      }
+      stationName = stationNames[startStationNameIndex];
+    }
+
+    function nextSeamaphore() {
+      seamaphoreNo += Math.round(Math.random() * 10);
+    }
+
     for (var i = 0; i <= xAxisMax; i++) {
       var lamp = '' + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
               Math.random())
@@ -451,14 +575,35 @@ $(function () {
         lowFrequencyRandom -= 1;
       }
 
-      var seamaphore;
-      if (seamaphoreRandom == 0) {
-        seamaphoreRandom = Math.round(Math.random() * 80);
-        seamaphore = Math.round(Math.random());
+      // 信号机, 每隔 n 个 pass, 来一个 notice, in, out, 然后再重复
+      var stationName = '无此站名';
+      if (seamaphoreStateRandom == 0) {
+        if (seamaphoreState === 'pass') {
+          if (seamaphoreRandom == 0) {
+            seamaphoreState = 'notice';
+          } else {
+            seamaphoreRandom -= 1;
+          }
+
+          nextSeamaphore();
+        } else if (seamaphoreState === 'notice') {
+          seamaphoreState = 'in';
+          nextSeamaphore();
+          nextStation();
+        } else if (seamaphoreState === 'in') {
+          seamaphoreState = 'out';
+          nextSeamaphore();
+        } else if (seamaphoreState === 'out') {
+          seamaphoreState = 'pass';
+          seamaphoreRandom = Math.round(Math.random() * 6);
+          nextSeamaphore();
+        }
+
+        seamaphoreStateRandom = Math.round(Math.random() * 5 + 10);
       } else {
-        seamaphore = dataArray[i - 1].seamaphore;
-        seamaphoreRandom -= 1;
+        seamaphoreStateRandom -= 1;
       }
+
 
       var upDown;
       if (upDownRandom == 0) {
@@ -501,7 +646,9 @@ $(function () {
                        voltage: voltage,
                        carrierFrequency: carrierFrequency,
                        lowFrequency: lowFrequency,
-                       seamaphore: seamaphore,
+                       stationName: stationName,
+                       seamaphoreNo: seamaphoreNo,
+                       seamaphoreState: seamaphoreState,
                        upDown: upDown,
                        insulation: insulation,
                        ab: ab,
@@ -512,4 +659,5 @@ $(function () {
 
     return dataArray;
   }
+
 });
