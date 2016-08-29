@@ -107,6 +107,15 @@ $(function () {
   drag.on('drag', function () {
     var e = d3.mouse(d3.select('#chart').node());
     var x = adjustX(e[0]);
+
+    if (x < margin.left) {
+      x = margin.left;
+    }
+
+    if (x > (size.width - margin.right)) {
+      x = size.width - margin.right;
+    }
+
     if (selectLine) {
       selectLine.attr('x1', x)
           .attr('x2', x);
@@ -115,6 +124,11 @@ $(function () {
 
   svg.on('click', function () {
     var e = d3.mouse(d3.select('#chart').node());
+    // 点在外面的不处理
+    if (e[0] < margin.left || e[0] > (size.width - margin.right)) {
+      return;
+    }
+
     var x = adjustX(e[0]);
 
     if (selectLine) {
@@ -307,10 +321,28 @@ $(function () {
           return 'translate(' + x(i) + ',0)';
         });
 
-    grid.append("rect")
-        .attr("width", gridWidth - 1)
-        .attr("height", lampBeltHeight)
-        .style("stroke", '#0dd')
+    var r1 = grid.append("rect")
+        .attr("width", gridWidth)
+        .attr("height", lampBeltHeight / 2)
+        .style("fill", function (d) {
+          if (d.lamp.charAt(0) === '1') {
+           return '#f00';
+          } else {
+            return '#00f';
+          }
+        });
+
+    var r2 = grid.append('rect')
+        .attr('width', gridWidth)
+        .attr('height', lampBeltHeight / 2)
+        .attr('y', lampBeltHeight / 2)
+        .style("fill", function (d) {
+          if (d.lamp.charAt(1) === '1') {
+            return '#ff0';
+          } else {
+            return '#0ff';
+          }
+        });
   }
 
   /**
@@ -552,7 +584,7 @@ $(function () {
   function generateTestData() {
     var startDate = new Date().getTime() - 1000 * 60 * 60;
     var dataArray = [];
-    var carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
+    var lampRandom = 0, carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
         insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0;
     var seamaphoreState = 'pass';
     var seamaphoreRandom = Math.round(Math.random() * 6); // 每隔几个信号机来一个进站出站
@@ -606,11 +638,23 @@ $(function () {
       seamaphoreNo += Math.round(Math.random() * 10);
     }
 
-    for (var i = 0; i <= xAxisMax; i++) {
+    function pushNewData() {
       var lamp = '' + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
               Math.random())
                  + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
               Math.random());
+
+      if (lampRandom == 0) {
+        lampRandom = Math.round(Math.random() * 10 + 5);
+        lamp = '' + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
+                Math.random())
+               + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
+                Math.random());
+      } else {
+        lamp = dataArray[i - 1].lamp;
+        lampRandom -= 1;
+      }
+
       var voltage = Math.round(Math.random() * 800 + 600);
 
       var carrierFrequency;
@@ -712,6 +756,18 @@ $(function () {
                        date: new Date(startDate + i * 1000)
                      });
     }
+
+    for (var i = 0; i <= xAxisMax; i++) {
+      pushNewData();
+    }
+
+    // 然后定期生产数据进入 dataArray
+    setInterval(function () {
+      pushNewData();
+      if (dataArray.length > xAxisMax + 1) {
+        dataArray.splice(0, 1);
+      }
+    }, 4000);
 
     return dataArray;
   }
