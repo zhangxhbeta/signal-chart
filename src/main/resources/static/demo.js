@@ -11,7 +11,7 @@ $(function () {
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
   var gridSize = 46; // 将大图表横向划分为固定的高度单元, 然后方便分配
-  var xAxisMax = 200; // 图表中展示的数据记录条数
+  var xAxisMax = 1200; // 图表中展示的数据记录条数
   var margin = {
     top: 5,
     right: 28,
@@ -23,6 +23,7 @@ $(function () {
   var labelLeftMargin = 30;
   var firstDateLabelFormat = d3.time.format('%Y-%m-%d');
   var dateLabelFormat = d3.time.format("%H:%M:%S");
+  var maxVoltage = 2000, maxCarrierFrequency = 4000, maxLowFrequency = 40; // 感应电压/低频/载频部分的图表y轴最大值
 
   // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
   var size = calcChartSize();
@@ -39,7 +40,7 @@ $(function () {
       .attr('height', size.height)
       .attr('viewBox', '0 0 ' + size.width + " " + size.height)
       .style('display', 'block');
-  d3.select('#version').html('v' + d3.version);
+  d3.select('#version').html('机车图demo演示 (随机模拟数据)');
 
   // svg 画布已准备妥当，开始准备图表元素
   var height = size.height - margin.bottom - margin.top,
@@ -55,51 +56,20 @@ $(function () {
   // 生成测试数据
   var dataArray = generateTestData();
 
-  // 绘制图表, 感应电压/载频/低频,速度
+  // 计算子图表高度
   var chartOffset = margin.top;
   var chartHeight = gridHeight * 20;
-  drawChart(chartOffset, chartHeight);
-
-  // 绘制灯带
   var lampBeltOffset = chartOffset + chartHeight + gridHeight;
-  drawLampBelt(lampBeltOffset, gridHeight * 1.5);
-
-  // 绘制信号机
-  var y = d3.scale.linear()
-      .domain([0, 1])
-      .range([gridHeight * 2, 0]);
-
-  // 绘制信号机
   var semaphoreOffset = lampBeltOffset + gridHeight * 3;
   var semaphoreHeight = gridHeight * 4;
-  drawSemaphore(semaphoreOffset, '信号机', semaphoreHeight);
-
-  // 绘制绝缘
   var insulationOffset = semaphoreOffset + semaphoreHeight + gridHeight * 2;
-  drawInsulationChairLine(insulationOffset, '绝缘', function (d) {
-    return y(d.insulation);
-  });
-
-  // 绘制上/下行
   var upDownOffset = insulationOffset + gridHeight * 4;
-  drawChairLine(upDownOffset, '上/下行', function (d) {
-    return y(d.upDown);
-  });
-
-  // 绘制A/B机
   var abOffset = upDownOffset + gridHeight * 4;
-  drawChairLine(abOffset, 'A/B机', function (d) {
-    return y(d.ab);
-  });
-
-  // 绘制 1/2 端
   var port12Offset = abOffset + gridHeight * 4;
-  drawChairLine(port12Offset, '1/2端', function (d) {
-    return y(d.port12);
-  });
 
-  // 绘制 x 轴
-  drawXAxis(margin.top + height, '时间里程');
+  drawText();
+
+  update();
 
   // 添加鼠标点击时的指示竖线
   var selectLine;
@@ -133,7 +103,7 @@ $(function () {
 
     if (selectLine) {
       selectLine.attr('x1', x)
-        .attr('x2', x);
+          .attr('x2', x);
     } else {
       selectLine = svg.append('line').attr('x1', x)
           .attr('y1', margin.top)
@@ -157,12 +127,46 @@ $(function () {
     }
   });
 
-  /**
-   * 绘制图表的部分
-   */
-  function drawChart(chartOffset, chartHeight) {
-    var maxVoltage = 2000, maxCarrierFrequency = 4000, maxLowFrequency = 40;
+  function update() {
+    // 绘制图表, 感应电压/载频/低频,速度
+    drawChart(chartOffset, chartHeight);
 
+    // 绘制灯带
+    drawLampBelt(lampBeltOffset, gridHeight * 1.5);
+
+    // 绘制信号机
+    drawSemaphore(semaphoreOffset, semaphoreHeight);
+
+    // 准备一个映射器
+    var y = d3.scale.linear()
+        .domain([0, 1])
+        .range([gridHeight * 2, 0]);
+
+    // 绘制绝缘
+    drawInsulationChairLine(insulationOffset, function (d) {
+      return y(d.insulation);
+    });
+
+    // 绘制上/下行
+    drawChairLine(upDownOffset, 'updown', function (d) {
+      return y(d.upDown);
+    });
+
+    // 绘制A/B机
+    drawChairLine(abOffset, 'ab', function (d) {
+      return y(d.ab);
+    });
+
+    // 绘制 1/2 端
+    drawChairLine(port12Offset, 'port12', function (d) {
+      return y(d.port12);
+    });
+
+    // 绘制 x 轴
+    drawXAxis(margin.top + height);
+  }
+
+  function drawText() {
     svg.append('text')
         .attr("x", 0)
         .attr("y", chartOffset + fontSizeOffset)
@@ -187,8 +191,58 @@ $(function () {
         .attr("dy", ".55em")
         .text('上电标志');
 
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", lampBeltOffset + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text('灯码超防');
+
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", semaphoreOffset + gridHeight + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text('信号机');
+
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", insulationOffset + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text('绝缘');
+
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", upDownOffset + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text('上/下行');
+
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", abOffset + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text('A/B机');
+
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", port12Offset + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text('1/2端');
+
+    svg.append('text')
+        .attr("x", labelLeftMargin)
+        .attr("y", margin.top + height + fontSizeOffset)
+        .attr("dy", ".55em")
+        .text('时间里程');
+  }
+
+  /**
+   * 绘制图表的部分
+   */
+  function drawChart(chartOffset, chartHeight) {
+    svg.select('g.lineChart').remove();
+
     // 添加组
     var groupChart = svg.append('g')
+        .attr('class', 'lineChart')
         .attr('transform', 'translate(' + margin.left + ',' + chartOffset + ')');
 
     // 绘制竖方向网格
@@ -227,6 +281,7 @@ $(function () {
         .call(makeYAxis().tickSize(-width, 0, 0).tickFormat(''));
 
     groupChart.append("path")
+        .attr('class', 'pathVoltage')
         .datum(dataArray)
         .attr("d", lineVoltage)
         .style("fill", "none")
@@ -277,64 +332,95 @@ $(function () {
    * 绘制灯带
    */
   function drawLampBelt(lampBeltOffset, lampBeltHeight) {
-    svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", lampBeltOffset + fontSizeOffset)
-        .attr("dy", ".55em")
-        .text('灯码超防');
-
     // 绘制当前灯
-    var circleRadii = [gridHeight, gridHeight * 0.4, gridHeight * 0.2];
-    var groupLamp = svg.append('g')
-        .attr('transform', 'translate(0,' + lampBeltOffset + ')');
+    if (svg.select('g.lamp').size() == 0) {
+      var circleRadii = [gridHeight, gridHeight * 0.4, gridHeight * 0.2];
+      var groupLamp = svg.append('g')
+          .attr('class', 'lamp')
+          .attr('transform', 'translate(0,' + lampBeltOffset + ')');
 
-    groupLamp.selectAll("circle")
-        .data(circleRadii)
-        .enter()
-        .append('circle')
-        .attr("cx", gridHeight)
-        .attr("cy", gridHeight)
-        .attr("r", function (d) {
-          return d;
-        })
-        .style("fill", function (d) {
-          var returnColor;
-          var r = d / gridHeight;
-          if (r === 1) {
-            returnColor = "green";
-          } else if (r >= 0.4) {
-            returnColor = "purple";
-          } else if (r >= 0.2) {
-            returnColor = "red";
-          }
-          return returnColor;
-        });
+      groupLamp.selectAll("circle")
+          .data(circleRadii)
+          .enter()
+          .append('circle')
+          .attr("cx", gridHeight)
+          .attr("cy", gridHeight)
+          .attr("r", function (d) {
+            return d;
+          })
+          .style("fill", function (d) {
+            var returnColor;
+            var r = d / gridHeight;
+            if (r === 1) {
+              returnColor = "green";
+            } else if (r >= 0.4) {
+              returnColor = "purple";
+            } else if (r >= 0.2) {
+              returnColor = "red";
+            }
+            return returnColor;
+          });
+    }
 
-    var lampBeltGroup = svg.append('g')
-        .attr('transform', 'translate(' + margin.left + ',' + lampBeltOffset + ')');
+    var lampBeltGroup = svg.select('g.lampBelt');
+    if (lampBeltGroup.size() == 0) {
+      lampBeltGroup = svg.append('g')
+          .attr('class', 'lampBelt')
+          .attr('transform', 'translate(' + margin.left + ',' + lampBeltOffset + ')');
+    }
 
-    var grid = lampBeltGroup.selectAll("g")
-        .data(dataArray)
-        .enter()
-        .append("g")
-        .attr("transform", function (d, i) {
-          return 'translate(' + x(i) + ',0)';
-        });
+    var rectLamp1 = lampBeltGroup.selectAll("rect.lamp1")
+        .data(dataArray);
 
-    var r1 = grid.append("rect")
+    if (dataArray.length > xAxisMax) {
+      rectLamp1.style("fill", function (d) {
+        if (d.lamp.charAt(0) === '1') {
+          return '#f00';
+        } else {
+          return '#00f';
+        }
+      });
+    }
+
+    rectLamp1.enter()
+        .append("rect")
+        .attr('class', 'lamp1')
         .attr("width", gridWidth)
         .attr("height", lampBeltHeight / 2)
+        .attr('x', function (d, i) {
+          return i * gridWidth;
+        })
         .style("fill", function (d) {
           if (d.lamp.charAt(0) === '1') {
-           return '#f00';
+            return '#f00';
           } else {
             return '#00f';
           }
         });
 
-    var r2 = grid.append('rect')
+    rectLamp1.exit().remove();
+
+    var rectLamp2 = lampBeltGroup.selectAll("rect.lamp2")
+        .data(dataArray);
+
+    if (dataArray.length > xAxisMax) {
+      rectLamp2.style("fill", function (d) {
+        if (d.lamp.charAt(1) === '1') {
+          return '#ff0';
+        } else {
+          return '#0ff';
+        }
+      });
+    }
+
+    rectLamp2.enter()
+        .append('rect')
+        .attr('class', 'lamp2')
         .attr('width', gridWidth)
         .attr('height', lampBeltHeight / 2)
+        .attr('x', function (d, i) {
+          return i * gridWidth;
+        })
         .attr('y', lampBeltHeight / 2)
         .style("fill", function (d) {
           if (d.lamp.charAt(1) === '1') {
@@ -343,19 +429,19 @@ $(function () {
             return '#0ff';
           }
         });
+
+    rectLamp2.exit().remove();
   }
 
   /**
    * 绘制阶梯图
    */
-  function drawChairLine(seamaphoreOffset, text, generateorY) {
-    svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", seamaphoreOffset + fontSizeOffset)
-        .attr("dy", ".55em")
-        .text(text);
+  function drawChairLine(seamaphoreOffset, cls, generateorY) {
+
+    svg.select('g.' + cls).remove();
 
     var g = svg.append('g')
+        .attr('class', cls)
         .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
 
     var line = d3.svg.line().x(function (d, i) {
@@ -374,38 +460,41 @@ $(function () {
   /**
    * 绘制绝缘图 (多了颜色变换)
    */
-  function drawInsulationChairLine(seamaphoreOffset, text, generateorY) {
-    svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", seamaphoreOffset + fontSizeOffset)
-        .attr("dy", ".55em")
-        .text(text);
+  function drawInsulationChairLine(seamaphoreOffset, generateorY) {
 
-    var g = svg.append('g')
+    var g = svg.select('g.insulation');
+    if (g.size() === 0) {
+      svg.append("linearGradient")
+          .attr("id", "line-gradient")
+          .attr("x1", '0%').attr("y1", '0%')
+          .attr("x2", '0%').attr("y2", '100%')
+          .selectAll("stop")
+          .data([
+                  {offset: "0%", color: "red"},
+                  {offset: "50%", color: "red"},
+                  {offset: "100%", color: "blue"}
+                ])
+          .enter()
+          .append("stop")
+          .attr("offset", function (d) {
+            return d.offset;
+          })
+          .attr("stop-color", function (d) {
+            return d.color;
+          });
+    }
+
+    // 首先移除掉自己
+    g.remove();
+    g = svg.append('g')
+        .attr('class', 'insulation')
         .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
 
     var line = d3.svg.line().x(function (d, i) {
       return x(i);
     }).y(generateorY).interpolate("step-after");
 
-    g.append("linearGradient")
-        .attr("id", "line-gradient")
-        .attr("x1", '0%').attr("y1", '0%')
-        .attr("x2", '0%').attr("y2", '100%')
-        .selectAll("stop")
-        .data([
-                {offset: "0%", color: "red"},
-                {offset: "50%", color: "red"},
-                {offset: "100%", color: "blue"}
-              ])
-        .enter()
-        .append("stop")
-        .attr("offset", function (d) {
-          return d.offset;
-        })
-        .attr("stop-color", function (d) {
-          return d.color;
-        });
+
 
     g.append("path")
         .datum(dataArray)
@@ -416,41 +505,49 @@ $(function () {
         .style("stroke-opacity", 0.9);
   }
 
-  function drawSemaphore(seamaphoreOffset, text, semaphoreHeight) {
-    svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", seamaphoreOffset + gridHeight + fontSizeOffset)
-        .attr("dy", ".55em")
-        .text(text);
+  /**
+   * 绘制信号机部分
+   * @param seamaphoreOffset
+   * @param semaphoreHeight
+   */
+  function drawSemaphore(seamaphoreOffset, semaphoreHeight) {
 
-    var g = svg.append('g')
+    var g = svg.select('g.semaphore');
+    if (g.size() == 0) {
+      // 先绘制底线
+      svg.append('line').attr('x1', margin.left)
+          .attr('y1', seamaphoreOffset + semaphoreHeight)
+          .attr('x2', size.width - margin.right)
+          .attr('y2', seamaphoreOffset + semaphoreHeight)
+          .style('stroke', '#000');
+    } else {
+      // 删掉原来绘制的
+      g.remove();
+    }
+
+    // 绘制信号
+    var heightUnit = semaphoreHeight / 5;
+    g = svg.append('g')
+        .attr('class', 'semaphore')
         .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
 
-    var heightUnit = semaphoreHeight / 5;
-
-    // 先绘制底线
-    g.append('line').attr('x1', 0)
-        .attr('y1', semaphoreHeight)
-        .attr('x2', width)
-        .attr('y2', semaphoreHeight)
-        .style('stroke', '#000');
-
     // 过滤数据
-    var stationDatas = dataArray.reduce(function (previousValue, currentValue, currentIndex, array) {
-      if (currentIndex != 0) {
-        var prevIndexData = array[currentIndex - 1];
-        if (prevIndexData.seamaphoreNo !== currentValue.seamaphoreNo
-            || prevIndexData.seamaphoreState !== currentValue.seamaphoreState) {
-          // 前一个状态和现在这个不同, 说明需要图表上绘制一下
-          previousValue.push({
-                               index: currentIndex,
-                               value: currentValue
-                             });
+    var stationDatas = dataArray.reduce(
+        function (previousValue, currentValue, currentIndex, array) {
+          if (currentIndex != 0) {
+            var prevIndexData = array[currentIndex - 1];
+            if (prevIndexData.seamaphoreNo !== currentValue.seamaphoreNo
+                || prevIndexData.seamaphoreState !== currentValue.seamaphoreState) {
+              // 前一个状态和现在这个不同, 说明需要图表上绘制一下
+              previousValue.push({
+                                   index: currentIndex,
+                                   value: currentValue
+                                 });
 
-        }
-      }
-      return previousValue;
-    }, []);
+            }
+          }
+          return previousValue;
+        }, []);
 
     var grid = g.selectAll("g")
         .data(stationDatas)
@@ -505,8 +602,10 @@ $(function () {
           var data = d.value;
           if (data.seamaphoreState === 'in') {
             return data.stationName;
-          } else if (data.seamaphoreState == 'out') {
+          } else if (data.seamaphoreState === 'out') {
             return '出站';
+          } else if (data.seamaphoreState === 'notice') {
+            return '进站';
           } else {
             return data.seamaphoreNo;
           }
@@ -517,7 +616,9 @@ $(function () {
   /**
    * 绘制 x 轴
    */
-  function drawXAxis(xAxisOffset, text) {
+  function drawXAxis(xAxisOffset) {
+    svg.select('g.axis').remove();
+
     var xAxis = d3.svg.axis()
         .scale(x)
         .orient("bottom")
@@ -532,14 +633,8 @@ $(function () {
           }
         });
 
-    svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", xAxisOffset + fontSizeOffset)
-        .attr("dy", ".55em")
-        .text(text);
-
     svg.append("g")
-        .attr("class", "x axis")
+        .attr("class", "axis")
         .attr("transform", "translate(" + margin.left + "," + xAxisOffset + ")")
         .call(xAxis);
   }
@@ -640,6 +735,7 @@ $(function () {
     }
 
     function pushNewData() {
+      var lastData = dataArray[dataArray.length - 1];
       var lamp = '' + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
               Math.random())
                  + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
@@ -652,7 +748,7 @@ $(function () {
                + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
                 Math.random());
       } else {
-        lamp = dataArray[i - 1].lamp;
+        lamp = lastData.lamp;
         lampRandom -= 1;
       }
 
@@ -663,7 +759,7 @@ $(function () {
         carrierFrequencyRandom = Math.round(Math.random() * 18);
         carrierFrequency = Math.round(Math.random() * 2900);
       } else {
-        carrierFrequency = dataArray[i - 1].carrierFrequency;
+        carrierFrequency = lastData.carrierFrequency;
         carrierFrequencyRandom -= 1;
       }
 
@@ -672,7 +768,7 @@ $(function () {
         lowFrequencyRandom = Math.round(Math.random() * 20);
         lowFrequency = Math.round(Math.random() * 12);
       } else {
-        lowFrequency = dataArray[i - 1].lowFrequency;
+        lowFrequency = lastData.lowFrequency;
         lowFrequencyRandom -= 1;
       }
 
@@ -699,27 +795,26 @@ $(function () {
           nextSeamaphore();
         }
 
-        seamaphoreStateRandom = Math.round(Math.random() * 5 + 10);
+        seamaphoreStateRandom = Math.round(Math.random() * 30 + 60);
       } else {
         seamaphoreStateRandom -= 1;
       }
-
 
       var upDown;
       if (upDownRandom == 0) {
         upDownRandom = Math.round(Math.random() * 50);
         upDown = Math.round(Math.random());
       } else {
-        upDown = dataArray[i - 1].upDown;
+        upDown = lastData.upDown;
         upDownRandom -= 1;
       }
 
       var insulation;
       if (insulationRandom == 0) {
-        insulationRandom = Math.round(Math.random() * 10);
+        insulationRandom = Math.round(Math.random() * 60);
         insulation = Math.round(Math.random());
       } else {
-        insulation = dataArray[i - 1].insulation;
+        insulation = lastData.insulation;
         insulationRandom -= 1;
       }
 
@@ -728,7 +823,7 @@ $(function () {
         abRandom = Math.round(Math.random() * 120);
         ab = Math.round(Math.random());
       } else {
-        ab = dataArray[i - 1].ab;
+        ab = lastData.ab;
         abRandom -= 1;
       }
 
@@ -737,7 +832,7 @@ $(function () {
         port12Random = Math.round(Math.random() * 100);
         port12 = Math.round(Math.random());
       } else {
-        port12 = dataArray[i - 1].port12;
+        port12 = lastData.port12;
         port12Random -= 1;
       }
 
@@ -757,17 +852,20 @@ $(function () {
                      });
     }
 
-    for (var i = 0; i <= xAxisMax; i++) {
+    for (var i = 0; i < 20; i++) {
       pushNewData();
     }
 
     // 然后定期生产数据进入 dataArray
     setInterval(function () {
-      pushNewData();
-      if (dataArray.length > xAxisMax + 1) {
-        dataArray.splice(0, 1);
+      for (var i = 0; i < 20; i++) {
+        pushNewData();
       }
-    }, 4000);
+      if (dataArray.length > xAxisMax + 1) {
+        dataArray.splice(0, dataArray.length - xAxisMax + 1);
+      }
+      update(); // 重新绘制图表
+    }, 2000);
 
     return dataArray;
   }
