@@ -625,6 +625,7 @@ $(function () {
     ];
     var startStationNameIndex = Math.round(Math.random() * stationNames.length); // 开始站名
     var seamaphoreStateRandom = 0;
+    var stationName = '无此站名';
 
     function nextStation() {
       startStationNameIndex++;
@@ -676,7 +677,6 @@ $(function () {
       }
 
       // 信号机, 每隔 n 个 pass, 来一个 notice, in, out, 然后再重复
-      var stationName = '无此站名';
       if (seamaphoreStateRandom == 0) {
         if (seamaphoreState === 'pass') {
           if (seamaphoreRandom == 0) {
