@@ -67,6 +67,9 @@ $(function () {
   var abOffset = upDownOffset + gridHeight * 4;
   var port12Offset = abOffset + gridHeight * 4;
 
+  // 添加公共引用数据, 渐变
+  addDefs();
+
   // 绘制静态文本
   drawText();
 
@@ -133,7 +136,8 @@ $(function () {
     // 绘制图表, 感应电压/载频/低频,速度
     drawChart(chartOffset, chartHeight);
 
-    // 绘制灯带
+    // 绘制灯和灯带
+    drawLamp(lampBeltOffset, gridHeight * 1.5);
     drawLampBelt(lampBeltOffset, gridHeight * 1.5);
 
     // 绘制信号机
@@ -168,6 +172,211 @@ $(function () {
     drawXAxis(margin.top + height);
   }
 
+  function addDefs() {
+
+    var defs = svg.append('defs');
+
+    // 绝缘渐变
+    defs.append("linearGradient")
+        .attr("id", "line-gradient-insulation")
+        .attr("x1", '0%').attr("y1", '0%')
+        .attr("x2", '0%').attr("y2", '100%')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "red"},
+                {offset: "50%", color: "red"},
+                {offset: "100%", color: "blue"}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        });
+
+    // 灯上面的高光颜色定义
+    defs.append("radialGradient")
+        .attr("id", "radial-gradient-lamp")
+        .attr("cx", '.45')
+        .attr("cy", '.35')
+        .attr('r', '.7')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "#fff", stopOpacity: '.05'},
+                {offset: "30%", color: "#888", stopOpacity: '.1'},
+                {offset: "75%", color: "#888", stopOpacity: '.2'},
+                {offset: "100%", color: "#888", stopOpacity: '.3'}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        })
+        .style('stop-opacity', function (d) {
+          return d.stopOpacity;
+        })
+
+    // 双黄灯
+    defs.append("linearGradient")
+        .attr("id", "line-gradient-lamp-uu")
+        .attr("x1", '0%').attr("y1", '0%')
+        .attr("x2", '0%').attr("y2", '100%')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "#FE2"},
+                {offset: "45%", color: "#FE2"},
+                {offset: "46%", color: "black"},
+                {offset: "54%", color: "black"},
+                {offset: "55%", color: "#FE2"},
+                {offset: "100%", color: "#FE2"}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        });
+
+    // 红黄灯
+    defs.append("linearGradient")
+        .attr("id", "line-gradient-lamp-hu")
+        .attr("x1", '0%').attr("y1", '0%')
+        .attr("x2", '0%').attr("y2", '100%')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "red"},
+                {offset: "45%", color: "red"},
+                {offset: "46%", color: "black"},
+                {offset: "54%", color: "black"},
+                {offset: "55%", color: "#FE2"},
+                {offset: "100%", color: "#FE2"}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        });
+
+    // 绿黄灯
+    defs.append("linearGradient")
+        .attr("id", "line-gradient-lamp-lu")
+        .attr("x1", '0%').attr("y1", '0%')
+        .attr("x2", '0%').attr("y2", '100%')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "green"},
+                {offset: "45%", color: "green"},
+                {offset: "46%", color: "black"},
+                {offset: "54%", color: "black"},
+                {offset: "55%", color: "#FE2"},
+                {offset: "100%", color: "#FE2"}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        });
+
+    // 灯带, 双黄
+    defs.append("linearGradient")
+        .attr("id", "line-gradient-lamp-belt-uu")
+        .attr("x1", '0%').attr("y1", '0%')
+        .attr("x2", '0%').attr("y2", '100%')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "yellow"},
+                {offset: "40%", color: "yellow"},
+                {offset: "40%", color: 'black'},
+                {offset: "60%", color: "black"},
+                {offset: "60%", color: "yellow"},
+                {offset: "100%", color: "yellow"}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        });
+
+    // 灯带, 红黄
+    defs.append("linearGradient")
+        .attr("id", "line-gradient-lamp-belt-hu")
+        .attr("x1", '0%').attr("y1", '0%')
+        .attr("x2", '0%').attr("y2", '100%')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "red"},
+                {offset: "50%", color: "red"},
+                {offset: "50%", color: "yellow"},
+                {offset: "100%", color: "yellow"}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        });
+
+    // 灯带, 绿黄
+    defs.append("linearGradient")
+        .attr("id", "line-gradient-lamp-belt-lu")
+        .attr("x1", '0%').attr("y1", '0%')
+        .attr("x2", '0%').attr("y2", '100%')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "green"},
+                {offset: "50%", color: "green"},
+                {offset: "50%", color: "yellow"},
+                {offset: "100%", color: "yellow"}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        });
+
+    // 灯带, 黄2
+    defs.append("linearGradient")
+        .attr("id", "line-gradient-lamp-belt-u2")
+        .attr("x1", '0%').attr("y1", '0%')
+        .attr("x2", '0%').attr("y2", '100%')
+        .selectAll("stop")
+        .data([
+                {offset: "0%", color: "yellow"},
+                {offset: "50%", color: "yellow"},
+                {offset: "50%", color: "white"},
+                {offset: "100%", color: "white"}
+              ])
+        .enter()
+        .append("stop")
+        .attr("offset", function (d) {
+          return d.offset;
+        })
+        .attr("stop-color", function (d) {
+          return d.color;
+        });
+  }
+
   function drawText() {
     svg.append('text')
         .attr("x", 0)
@@ -197,7 +406,7 @@ $(function () {
         .attr("x", labelLeftMargin)
         .attr("y", lampBeltOffset + fontSizeOffset)
         .attr("dy", ".55em")
-        .text('灯码超防');
+        .text('灯码');
 
     svg.append('text')
         .attr("x", labelLeftMargin)
@@ -331,39 +540,76 @@ $(function () {
   }
 
   /**
+   * 绘制实时灯状态
+   */
+  function drawLamp(lampBeltOffset, lampBeltHeight) {
+    // 绘制当前灯
+    var lampGroup = svg.select('g.lamp');
+    if (lampGroup.size() == 0) {
+      // 添加灯的分组
+      lampGroup = svg.append('g')
+          .attr('class', 'lamp')
+          .attr('transform', 'translate(0,' + lampBeltOffset + ')');
+    }
+
+    var cx = labelLeftMargin + 40;
+    var lamp = lampGroup.selectAll('circle')
+        .data([dataArray[dataArray.length - 1]]);
+
+    var lampFill = function (d) {
+      if (d.lamp === '' || d.lamp === 'blank') {
+        return 'black';
+      } else if (d.lamp === 'L') {
+        return 'green';
+      } else if (d.lamp === 'U' || d.lamp === 'U2') {
+        return '#FE2';
+      } else if (d.lamp === 'H') {
+        return 'red';
+      } else if (d.lamp === 'B') {
+        return 'white';
+      }
+
+      return 'url(#line-gradient-lamp-' + d.lamp.toLowerCase() + ')';
+    };
+
+    lamp.style('fill', lampFill);
+    lamp.enter()
+        .append('circle')
+        .attr('cx', cx)
+        .attr('cy', gridHeight)
+        .attr('r', gridHeight)
+        .style('fill', lampFill);
+
+    // 遮一层高光
+    lamp.enter()
+        .append('circle')
+        .attr('cx', cx)
+        .attr('cy', gridHeight)
+        .attr('r', gridHeight)
+        .style('fill', 'url(#radial-gradient-lamp)');
+
+    // 黄2灯的字
+    var lampTextSize = 8;
+    var text = lampGroup.selectAll('text')
+        .data([dataArray[dataArray.length - 1]]);
+
+    text.text(function (d) {
+      return d.lamp === 'U2' ? '2' : '';
+    });
+    text.enter().append('text')
+        .attr("x", cx - lampTextSize / 2)
+        .attr("y", gridHeight)
+        .attr("dy", ".35em")
+        .text(function (d) {
+          return d.lamp === 'U2' ? '2' : '';
+        });
+  }
+
+  /**
    * 绘制灯带
    */
   function drawLampBelt(lampBeltOffset, lampBeltHeight) {
-    // 绘制当前灯
-    if (svg.select('g.lamp').size() == 0) {
-      var circleRadii = [gridHeight, gridHeight * 0.4, gridHeight * 0.2];
-      var groupLamp = svg.append('g')
-          .attr('class', 'lamp')
-          .attr('transform', 'translate(0,' + lampBeltOffset + ')');
-
-      groupLamp.selectAll("circle")
-          .data(circleRadii)
-          .enter()
-          .append('circle')
-          .attr("cx", gridHeight)
-          .attr("cy", gridHeight)
-          .attr("r", function (d) {
-            return d;
-          })
-          .style("fill", function (d) {
-            var returnColor;
-            var r = d / gridHeight;
-            if (r === 1) {
-              returnColor = "green";
-            } else if (r >= 0.4) {
-              returnColor = "purple";
-            } else if (r >= 0.2) {
-              returnColor = "red";
-            }
-            return returnColor;
-          });
-    }
-
+    // 添加灯带
     var lampBeltGroup = svg.select('g.lampBelt');
     if (lampBeltGroup.size() == 0) {
       lampBeltGroup = svg.append('g')
@@ -371,68 +617,68 @@ $(function () {
           .attr('transform', 'translate(' + margin.left + ',' + lampBeltOffset + ')');
     }
 
-    var rectLamp1 = lampBeltGroup.selectAll("rect.lamp1")
-        .data(dataArray);
+    var prevIndex = 0;
+    var lampDatas = dataArray.reduce(
+        function (previousValue, currentValue, currentIndex, array) {
+          if (currentIndex > 0) {
+            var prevIndexData = array[currentIndex - 1];
 
-    if (dataArray.length > xAxisMax) {
-      rectLamp1.style("fill", function (d) {
-        if (d.lamp.charAt(0) === '1') {
-          return '#f00';
-        } else {
-          return '#00f';
-        }
-      });
-    }
+            // 如果当前状态又变, 或者是最后一个
+            if (prevIndexData.lamp !== currentValue.lamp
+                || currentIndex === array.length - 1) {
+              // 前一个状态和现在这个不同,
+              previousValue.push({
+                                   index: prevIndex,
+                                   length: currentIndex - prevIndex,
+                                   lamp: array[prevIndex].lamp
+                                 });
 
-    rectLamp1.enter()
+              prevIndex = currentIndex;
+            }
+          }
+          return previousValue;
+        }, []);
+
+    var rectLamp = lampBeltGroup.selectAll("rect.lamp")
+        .data(lampDatas);
+
+    var lampFill = function (d) {
+      if (d.lamp === '' || d.lamp === 'blank') {
+        return 'black';
+      } else if (d.lamp === 'L') {
+        return 'green';
+      } else if (d.lamp === 'U') {
+        return 'yellow';
+      } else if (d.lamp === 'H') {
+        return 'red';
+      } else if (d.lamp === 'B') {
+        return 'white';
+      }
+
+      return 'url(#line-gradient-lamp-belt-' + d.lamp.toLowerCase() + ')';
+    };
+
+    rectLamp
+        .attr("width", function (d) {
+          return d.length * gridWidth;
+        })
+        .attr('x', function (d) {
+          return d.index * gridWidth;
+        }).style("fill", lampFill);
+
+    rectLamp.enter()
         .append("rect")
-        .attr('class', 'lamp1')
-        .attr("width", gridWidth)
-        .attr("height", lampBeltHeight / 2)
-        .attr('x', function (d, i) {
-          return i * gridWidth;
+        .attr('class', 'lamp')
+        .attr("width", function (d) {
+          return d.length * gridWidth;
         })
-        .style("fill", function (d) {
-          if (d.lamp.charAt(0) === '1') {
-            return '#f00';
-          } else {
-            return '#00f';
-          }
-        });
-
-    rectLamp1.exit().remove();
-
-    var rectLamp2 = lampBeltGroup.selectAll("rect.lamp2")
-        .data(dataArray);
-
-    if (dataArray.length > xAxisMax) {
-      rectLamp2.style("fill", function (d) {
-        if (d.lamp.charAt(1) === '1') {
-          return '#ff0';
-        } else {
-          return '#0ff';
-        }
-      });
-    }
-
-    rectLamp2.enter()
-        .append('rect')
-        .attr('class', 'lamp2')
-        .attr('width', gridWidth)
-        .attr('height', lampBeltHeight / 2)
-        .attr('x', function (d, i) {
-          return i * gridWidth;
+        .attr("height", lampBeltHeight)
+        .attr('x', function (d) {
+          return d.index * gridWidth;
         })
-        .attr('y', lampBeltHeight / 2)
-        .style("fill", function (d) {
-          if (d.lamp.charAt(1) === '1') {
-            return '#ff0';
-          } else {
-            return '#0ff';
-          }
-        });
+        .style("fill", lampFill);
 
-    rectLamp2.exit().remove();
+    rectLamp.exit().remove();
   }
 
   /**
@@ -441,7 +687,6 @@ $(function () {
   function drawChairLine(seamaphoreOffset, cls, generateorY) {
 
     svg.select('g.' + cls).remove();
-
     var g = svg.append('g')
         .attr('class', cls)
         .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
@@ -463,31 +708,7 @@ $(function () {
    * 绘制绝缘图 (多了颜色变换)
    */
   function drawInsulationChairLine(seamaphoreOffset, generateorY) {
-
-    var g = svg.select('g.insulation');
-    if (g.size() === 0) {
-      svg.append("linearGradient")
-          .attr("id", "line-gradient")
-          .attr("x1", '0%').attr("y1", '0%')
-          .attr("x2", '0%').attr("y2", '100%')
-          .selectAll("stop")
-          .data([
-                  {offset: "0%", color: "red"},
-                  {offset: "50%", color: "red"},
-                  {offset: "100%", color: "blue"}
-                ])
-          .enter()
-          .append("stop")
-          .attr("offset", function (d) {
-            return d.offset;
-          })
-          .attr("stop-color", function (d) {
-            return d.color;
-          });
-    }
-
-    // 首先移除掉自己
-    g.remove();
+    var g = svg.select('g.insulation').remove();
     g = svg.append('g')
         .attr('class', 'insulation')
         .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
@@ -496,14 +717,12 @@ $(function () {
       return x(i);
     }).y(generateorY).interpolate("step-after");
 
-
-
     g.append("path")
         .datum(dataArray)
         .attr("d", line)
         .style("fill", "none")
         .style("stroke-width", 1)
-        .style("stroke", 'url(#line-gradient)')
+        .style("stroke", 'url(#line-gradient-insulation)')
         .style("stroke-opacity", 0.9);
   }
 
@@ -723,6 +942,19 @@ $(function () {
     var startStationNameIndex = Math.round(Math.random() * stationNames.length); // 开始站名
     var seamaphoreStateRandom = 0;
     var stationName = '无此站名';
+    var lamp = 'L';
+    var lampStates = [
+      'L',    // 绿灯
+      'U',    // 黄灯
+      'UU',   // 双黄灯
+      'HU',   // 红黄灯
+      'LU',   // 绿黄灯
+      'U2',   // 黄2灯
+      'H',    // 红灯
+      'B',    // 白灯
+      ''     // 空白无码
+    ];
+    var startLampIndex = Math.round(Math.random() * lampStates.length); // 初始灯颜色
 
     function nextStation() {
       startStationNameIndex++;
@@ -738,17 +970,16 @@ $(function () {
 
     function pushNewData() {
       var lastData = dataArray[dataArray.length - 1];
-      var lamp = '' + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
-              Math.random())
-                 + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
-              Math.random());
 
       if (lampRandom == 0) {
-        lampRandom = Math.round(Math.random() * 10 + 5);
-        lamp = '' + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
-                Math.random())
-               + Math.round(Math.random()) + Math.round(Math.random()) + Math.round(
-                Math.random());
+        lampRandom = Math.round(Math.random() * 60 + 30);
+
+        while (startLampIndex >= lampStates.length) {
+          startLampIndex -= lampStates.length;
+        }
+
+        lamp = lampStates[startLampIndex];
+        startLampIndex += Math.round(Math.random() * 3);
       } else {
         lamp = lastData.lamp;
         lampRandom -= 1;
@@ -854,7 +1085,8 @@ $(function () {
                        insulation: insulation,
                        ab: ab,
                        port12: port12,
-                       date: lastData ? new Date(lastData.date.getTime() + 1000) : new Date(startDate)
+                       date: lastData ? new Date(lastData.date.getTime() + 1000)
+                           : new Date(startDate)
                      });
     }
 
