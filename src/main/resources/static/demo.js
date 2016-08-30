@@ -67,8 +67,10 @@ $(function () {
   var abOffset = upDownOffset + gridHeight * 4;
   var port12Offset = abOffset + gridHeight * 4;
 
+  // 绘制静态文本
   drawText();
 
+  // 绘制图表
   update();
 
   // 添加鼠标点击时的指示竖线
@@ -679,7 +681,7 @@ $(function () {
   function generateTestData() {
     var startDate = new Date().getTime() - 1000 * 60 * 60;
     var dataArray = [];
-    var lampRandom = 0, carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
+    var voltageRandom = 0, lampRandom = 0, carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
         insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0;
     var seamaphoreState = 'pass';
     var seamaphoreRandom = Math.round(Math.random() * 6); // 每隔几个信号机来一个进站出站
@@ -752,7 +754,11 @@ $(function () {
         lampRandom -= 1;
       }
 
-      var voltage = Math.round(Math.random() * 800 + 600);
+      var voltage = Math.round(Math.random() * 600 + voltageRandom * 2 + 300);
+      voltageRandom += Math.round(Math.random() * 20);
+      if (voltageRandom > 500) {
+        voltageRandom = 0;
+      }
 
       var carrierFrequency;
       if (carrierFrequencyRandom == 0) {
@@ -766,7 +772,7 @@ $(function () {
       var lowFrequency;
       if (lowFrequencyRandom == 0) {
         lowFrequencyRandom = Math.round(Math.random() * 20);
-        lowFrequency = Math.round(Math.random() * 12);
+        lowFrequency = Math.round(Math.random() * 3 + 9);
       } else {
         lowFrequency = lastData.lowFrequency;
         lowFrequencyRandom -= 1;
@@ -848,7 +854,7 @@ $(function () {
                        insulation: insulation,
                        ab: ab,
                        port12: port12,
-                       date: new Date(startDate + i * 1000)
+                       date: lastData ? new Date(lastData.date.getTime() + 1000) : new Date(startDate)
                      });
     }
 
@@ -862,7 +868,7 @@ $(function () {
         pushNewData();
       }
       if (dataArray.length > xAxisMax + 1) {
-        dataArray.splice(0, dataArray.length - xAxisMax + 1);
+        dataArray.splice(0, dataArray.length - xAxisMax - 1);
       }
       update(); // 重新绘制图表
     }, 2000);
