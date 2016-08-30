@@ -137,7 +137,7 @@ $(function () {
     drawChart(chartOffset, chartHeight);
 
     // 绘制灯和灯带
-    drawLamp(lampBeltOffset, gridHeight * 1.5);
+    drawLamp(lampBeltOffset);
     drawLampBelt(lampBeltOffset, gridHeight * 1.5);
 
     // 绘制信号机
@@ -219,7 +219,7 @@ $(function () {
         })
         .style('stop-opacity', function (d) {
           return d.stopOpacity;
-        })
+        });
 
     // 双黄灯
     defs.append("linearGradient")
@@ -542,7 +542,7 @@ $(function () {
   /**
    * 绘制实时灯状态
    */
-  function drawLamp(lampBeltOffset, lampBeltHeight) {
+  function drawLamp(lampBeltOffset) {
     // 绘制当前灯
     var lampGroup = svg.select('g.lamp');
     if (lampGroup.size() == 0) {
@@ -708,8 +708,8 @@ $(function () {
    * 绘制绝缘图 (多了颜色变换)
    */
   function drawInsulationChairLine(seamaphoreOffset, generateorY) {
-    var g = svg.select('g.insulation').remove();
-    g = svg.append('g')
+    svg.select('g.insulation').remove();
+    var g = svg.append('g')
         .attr('class', 'insulation')
         .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
 
@@ -774,7 +774,7 @@ $(function () {
         .data(stationDatas)
         .enter()
         .append("g")
-        .attr("transform", function (d, i) {
+        .attr("transform", function (d) {
           return 'translate(' + x(d.index) + ',0)';
         });
 
@@ -843,7 +843,7 @@ $(function () {
     var xAxis = d3.svg.axis()
         .scale(x)
         .orient("bottom")
-        .tickFormat(function (d, i) {
+        .tickFormat(function (d) {
           if (d >= dataArray.length) {
             return '';
           }
