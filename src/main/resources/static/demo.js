@@ -436,7 +436,7 @@ $(function () {
         .attr("x", labelLeftMargin)
         .attr("y", port12Offset + fontSizeOffset)
         .attr("dy", ".55em")
-        .text('1/2端');
+        .text('Ⅰ/Ⅱ端');
 
     svg.append('text')
         .attr("x", labelLeftMargin)
