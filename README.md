@@ -1,3 +1,3 @@
-# 机车图
+# 机车信号图
 
-![机车图表](docs/signal-chart.png)
+![机车信号图表Demo](docs/signal-chart.png)
