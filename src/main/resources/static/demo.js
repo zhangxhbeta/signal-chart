@@ -111,7 +111,8 @@ $(function () {
 
     if (selectLine) {
       selectLine.attr('x1', x)
-          .attr('x2', x);
+          .attr('x2', x)
+          .style('display', null);
     } else {
       selectLine = svg.append('line').attr('x1', x)
           .attr('y1', margin.top)
@@ -124,7 +125,7 @@ $(function () {
     }
 
   });
-  
+
   // 处理按钮事件
   $('#voltageUpBtn').on('click', function () {
     updateVoltageRange(1);
@@ -150,6 +151,16 @@ $(function () {
     updateLowFrequency(-1);
   });
 
+  $('#toggleLineBtn').on('click', function () {
+    // 点击显示隐藏竖线
+    if (selectLine) {
+      if (selectLine.style('display') !== 'none') {
+        selectLine.style('display', 'none');
+      } else {
+        selectLine.style('display', null);
+      }
+    }
+  });
 
   // 对窗口缩放做一下处理
   $(window).resize(function () {
@@ -1027,7 +1038,7 @@ $(function () {
         startStationNameIndex = 0;
       }
       stationName = stationNames[startStationNameIndex];
-      stationNo ++;
+      stationNo++;
     }
 
     function nextSeamaphore() {
@@ -1202,7 +1213,8 @@ $(function () {
     }
 
     drawChart(chartOffset, chartHeight);
-    d3.select('#carrierFrequencyLabel').text(carrierFrequencyMaxs[currentCarrierFrequencyIndex] + 'Hz');
+    d3.select('#carrierFrequencyLabel')
+        .text(carrierFrequencyMaxs[currentCarrierFrequencyIndex] + 'Hz');
   }
 
   function updateLowFrequency(val) {
