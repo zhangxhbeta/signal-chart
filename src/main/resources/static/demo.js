@@ -817,8 +817,6 @@ $(function () {
                                ]);
           }
 
-          console.log(path.join(" "));
-
           return path.join(" ");
         })
         .style("fill", "none")
@@ -975,7 +973,7 @@ $(function () {
     ];
     var startStationNameIndex = Math.round(Math.random() * stationNames.length); // 开始站名
     var seamaphoreStateRandom = 0;
-    var stationName = '无此站名';
+    var stationName = stationNames[startStationNameIndex];
     var stationNo = Math.round(Math.random() * 300 + 200);
     var lamp = 'L';
     var lampStates = [
