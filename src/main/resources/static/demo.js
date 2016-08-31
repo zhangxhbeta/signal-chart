@@ -10,7 +10,7 @@ $(function () {
   var minDetailHeight = 30; // 详情区域最小高度 30px
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
-  var gridSize = 46; // 将大图表横向划分为固定的高度单元, 然后方便分配
+  var gridSize = 48; // 将大图表横向划分为固定的高度单元, 然后方便分配
   var xAxisMax = 1200; // 图表中展示的数据记录条数
   var margin = {
     top: 5,
@@ -61,7 +61,7 @@ $(function () {
   var chartHeight = gridHeight * 20;
   var lampBeltOffset = chartOffset + chartHeight + gridHeight;
   var semaphoreOffset = lampBeltOffset + gridHeight * 3;
-  var semaphoreHeight = gridHeight * 4;
+  var semaphoreHeight = gridHeight * 6;
   var insulationOffset = semaphoreOffset + semaphoreHeight + gridHeight * 2;
   var upDownOffset = insulationOffset + gridHeight * 4;
   var abOffset = upDownOffset + gridHeight * 4;
@@ -113,9 +113,9 @@ $(function () {
       selectLine = svg.append('line').attr('x1', x)
           .attr('y1', margin.top)
           .attr('x2', x)
-          .attr('y2', size.height)
+          .attr('y2', size.height - margin.bottom)
           .style('stroke', '#000')
-          .style('stroke-width', '2')
+          .style('stroke-width', '1')
           .style('cursor', 'ew-resize')
           .call(drag);
     }
@@ -747,7 +747,7 @@ $(function () {
     }
 
     // 绘制信号
-    var heightUnit = semaphoreHeight / 5;
+    var heightUnit = semaphoreHeight / 6;
     g = svg.append('g')
         .attr('class', 'semaphore')
         .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
@@ -755,14 +755,14 @@ $(function () {
     // 过滤数据
     var stationDatas = dataArray.reduce(
         function (previousValue, currentValue, currentIndex, array) {
-          if (currentIndex != 0) {
+          if (currentIndex > 0) {
             var prevIndexData = array[currentIndex - 1];
             if (prevIndexData.seamaphoreNo !== currentValue.seamaphoreNo
                 || prevIndexData.seamaphoreState !== currentValue.seamaphoreState) {
               // 前一个状态和现在这个不同, 说明需要图表上绘制一下
               previousValue.push({
                                    index: currentIndex,
-                                   value: currentValue
+                                   value: prevIndexData
                                  });
 
             }
@@ -778,42 +778,53 @@ $(function () {
           return 'translate(' + x(d.index) + ',0)';
         });
 
-    grid.append("line").attr('x1', 0)
-        .attr('y1', function (d) {
-          if (d.value.seamaphoreState === 'pass') {
-            return heightUnit + heightUnit / 2;
-          } else {
-            return 0;
-          }
-        })
-        .attr('x2', 0)
-        .attr('y2', semaphoreHeight)
-        .style("stroke", '#000');
+    grid.append('path')
+        .attr('d', function (d) {
+          var path = [
+            'M', 0, heightUnit * 3,
+            'A', heightUnit / 2, heightUnit / 2, 0, 1, 1, 0, heightUnit * 3.1,
+            'Z'
+          ];
 
-    grid.append('circle')
-        .attr("cx", heightUnit / 2)
-        .attr("cy", heightUnit + heightUnit / 2)
-        .attr("r", function () {
-          return heightUnit / 2;
-        })
-        .style('fill', 'none')
-        .style("stroke", '#000');
-
-    // 绘制第二个圈圈, 如果是过信号机那种不用绘制
-    grid.append('circle')
-        .attr("cx", heightUnit / 2)
-        .attr("cy", 0)
-        .attr("r", function () {
-          return heightUnit / 2;
-        })
-        .style('fill', 'none')
-        .style("stroke", function (d) {
-          if (d.value.seamaphoreState === 'pass') {
-            return '#fff';
-          } else {
-            return '#000';
+          if (d.value.seamaphoreState !== 'pass') {
+            // 第二个圆圈
+            path = path.concat([
+                                 'M', 0, heightUnit * 4,
+                                 'A', heightUnit / 2, heightUnit / 2, 0, 1, 1, 0, heightUnit * 4.1,
+                                 'Z'
+                               ]);
           }
-        });
+
+          if (d.value.seamaphoreState === 'in') {
+            path = path.concat([
+                                 'M', -heightUnit, 0,
+                                 'L', heightUnit, 0,
+                                 'Z'
+                               ]);
+          }
+
+          if (d.value.seamaphoreState === 'in') {
+            path = path.concat([
+                                 'M', 0, 0,
+                                 'L', 0, semaphoreHeight,
+                                 'Z'
+                               ]);
+          } else {
+            path = path.concat([
+                                 'M', 0, heightUnit * 3,
+                                 'L', 0, semaphoreHeight,
+                                 'Z'
+                               ]);
+          }
+
+          console.log(path.join(" "));
+
+          return path.join(" ");
+        })
+        .style("fill", "none")
+        .style("stroke-width", 1)
+        .style("stroke", '#000')
+        .style("stroke-opacity", 0.9);
 
     grid.append('text')
         .attr("x", heightUnit)
@@ -828,9 +839,17 @@ $(function () {
           } else if (data.seamaphoreState === 'notice') {
             return '进站';
           } else {
-            return data.seamaphoreNo;
+            return '';
           }
 
+        });
+
+    grid.append('text')
+        .attr("x", heightUnit)
+        .attr("y", heightUnit * 5)
+        .attr("dy", ".30em")
+        .text(function (d) {
+          return d.value.seamaphoreNo;
         });
   }
 
@@ -1090,20 +1109,20 @@ $(function () {
                      });
     }
 
-    for (var i = 0; i < 20; i++) {
+    for (var i = 0; i < xAxisMax + 1; i++) {
       pushNewData();
     }
 
     // 然后定期生产数据进入 dataArray
-    setInterval(function () {
-      for (var i = 0; i < 20; i++) {
-        pushNewData();
-      }
-      if (dataArray.length > xAxisMax + 1) {
-        dataArray.splice(0, dataArray.length - xAxisMax - 1);
-      }
-      update(); // 重新绘制图表
-    }, 2000);
+    // setInterval(function () {
+    //   for (var i = 0; i < 20; i++) {
+    //     pushNewData();
+    //   }
+    //   if (dataArray.length > xAxisMax + 1) {
+    //     dataArray.splice(0, dataArray.length - xAxisMax - 1);
+    //   }
+    //   update(); // 重新绘制图表
+    // }, 2000);
 
     return dataArray;
   }
