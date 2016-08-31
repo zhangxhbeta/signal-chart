@@ -155,7 +155,7 @@ $(function () {
 
     // 绘制上/下行
     drawChairLine(upDownOffset, 'updown', function (d) {
-      return y(d.upDown);
+      return y(d.upDown === 'X' ? 1 : 0);
     });
 
     // 绘制A/B机
@@ -828,8 +828,22 @@ $(function () {
 
     grid.append('text')
         .attr("x", heightUnit)
+        .attr("y", heightUnit)
+        .attr("dy", ".25em")
+        .style('font-size', '8pt')
+        .text(function (d) {
+          if (d.value.seamaphoreState === 'in') {
+            return d.value.stationNo;
+          } else {
+            return '';
+          }
+        });
+
+    grid.append('text')
+        .attr("x", heightUnit)
         .attr("y", heightUnit * 3)
-        .attr("dy", ".35em")
+        .attr("dy", ".25em")
+        .style('font-size', '9pt')
         .text(function (d) {
           var data = d.value;
           if (data.seamaphoreState === 'in') {
@@ -837,7 +851,7 @@ $(function () {
           } else if (data.seamaphoreState === 'out') {
             return '出站';
           } else if (data.seamaphoreState === 'notice') {
-            return '进站';
+            return '预告';
           } else {
             return '';
           }
@@ -845,11 +859,12 @@ $(function () {
         });
 
     grid.append('text')
-        .attr("x", heightUnit)
+        .attr("x", 2)
         .attr("y", heightUnit * 5)
-        .attr("dy", ".30em")
+        .attr("dy", ".4em")
+        .style('font-size', '8pt')
         .text(function (d) {
-          return d.value.seamaphoreNo;
+          return d.value.upDown + ' ' + d.value.seamaphoreNo;
         });
   }
 
@@ -923,7 +938,7 @@ $(function () {
         insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0;
     var seamaphoreState = 'pass';
     var seamaphoreRandom = Math.round(Math.random() * 6); // 每隔几个信号机来一个进站出站
-    var seamaphoreNo = Math.round(Math.random() * 50 + 200); // 随机来个开始信号机号码
+    var seamaphoreNo = Math.round(Math.random() * 350 + 12300); // 随机来个开始信号机号码
     var stationNames = [
       '温州',
       '青田',
@@ -961,6 +976,7 @@ $(function () {
     var startStationNameIndex = Math.round(Math.random() * stationNames.length); // 开始站名
     var seamaphoreStateRandom = 0;
     var stationName = '无此站名';
+    var stationNo = Math.round(Math.random() * 300 + 200);
     var lamp = 'L';
     var lampStates = [
       'L',    // 绿灯
@@ -981,6 +997,7 @@ $(function () {
         startStationNameIndex = 0;
       }
       stationName = stationNames[startStationNameIndex];
+      stationNo ++;
     }
 
     function nextSeamaphore() {
@@ -1041,10 +1058,10 @@ $(function () {
         } else if (seamaphoreState === 'notice') {
           seamaphoreState = 'in';
           nextSeamaphore();
-          nextStation();
         } else if (seamaphoreState === 'in') {
           seamaphoreState = 'out';
           nextSeamaphore();
+          nextStation();
         } else if (seamaphoreState === 'out') {
           seamaphoreState = 'pass';
           seamaphoreRandom = Math.round(Math.random() * 6);
@@ -1059,7 +1076,7 @@ $(function () {
       var upDown;
       if (upDownRandom == 0) {
         upDownRandom = Math.round(Math.random() * 50);
-        upDown = Math.round(Math.random());
+        upDown = Math.round(Math.random()) === 1 ? 'S' : 'X';
       } else {
         upDown = lastData.upDown;
         upDownRandom -= 1;
@@ -1098,6 +1115,7 @@ $(function () {
                        carrierFrequency: carrierFrequency,
                        lowFrequency: lowFrequency,
                        stationName: stationName,
+                       stationNo: stationNo,
                        seamaphoreNo: seamaphoreNo,
                        seamaphoreState: seamaphoreState,
                        upDown: upDown,
@@ -1109,20 +1127,20 @@ $(function () {
                      });
     }
 
-    for (var i = 0; i < xAxisMax + 1; i++) {
+    for (var i = 0; i < 200; i++) {
       pushNewData();
     }
 
     // 然后定期生产数据进入 dataArray
-    // setInterval(function () {
-    //   for (var i = 0; i < 20; i++) {
-    //     pushNewData();
-    //   }
-    //   if (dataArray.length > xAxisMax + 1) {
-    //     dataArray.splice(0, dataArray.length - xAxisMax - 1);
-    //   }
-    //   update(); // 重新绘制图表
-    // }, 2000);
+    setInterval(function () {
+      for (var i = 0; i < 20; i++) {
+        pushNewData();
+      }
+      if (dataArray.length > xAxisMax + 1) {
+        dataArray.splice(0, dataArray.length - xAxisMax - 1);
+      }
+      update(); // 重新绘制图表
+    }, 2000);
 
     return dataArray;
   }
