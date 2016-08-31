@@ -26,20 +26,31 @@
   <div id="toolbar">
     <div class="btn-toolbar pull-left">
       <div class="btn-group">
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-arrow-up"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-arrow-down"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-arrow-up"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-arrow-down"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-arrow-up"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-arrow-down"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-search-plus"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-search-minus"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-pencil"></i></button>
+        <button id="voltageUpBtn" type="button" class="btn btn-default btn-sm"><i
+                class="fa fa-arrow-up" style="color: red;"></i></button>
+        <button id="voltageDownBtn" type="button" class="btn btn-default btn-sm"><i
+                class="fa fa-arrow-down" style="color: red;"></i></button>
+        <button id="carrierFrequencyUpBtn" type="button" class="btn btn-default btn-sm"><i
+                class="fa fa-arrow-up" style="color: green;"></i></button>
+        <button id="carrierFrequencyDownBtn" type="button" class="btn btn-default btn-sm"><i
+                class="fa fa-arrow-down" style="color: green;"></i></button>
+        <button id="lowFrequencyUpBtn" type="button" class="btn btn-default btn-sm"><i
+                class="fa fa-arrow-up" style="color: blue;"></i></button>
+        <button id="lowFrequencyDownBtn" type="button" class="btn btn-default btn-sm"><i
+                class="fa fa-arrow-down" style="color: blue;"></i></button>
       </div>
       <div class="btn-group">
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-step-backward"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-backward"></i></button>
-        <button type="button" class="btn btn-default btn-sm"><i class="fa fa-forward"></i></button>
+        <button id="toggleLineBtn" type="button" class="btn btn-default btn-sm"><i
+                class="fa fa-pencil"></i></button>
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-default btn-sm" disabled="disabled"><i
+                class="fa fa-step-backward"></i>
+        </button>
+        <button type="button" class="btn btn-default btn-sm" disabled="disabled"><i
+                class="fa fa-backward"></i></button>
+        <button type="button" class="btn btn-default btn-sm" disabled="disabled"><i
+                class="fa fa-forward"></i></button>
       </div>
     </div>
     <small class="pull-right"><span id="version"></span></small>

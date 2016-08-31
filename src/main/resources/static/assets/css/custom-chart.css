@@ -35,6 +35,18 @@
 }
 
 /*图表样式*/
+text#voltageLabel {
+  fill: red;
+}
+
+text#carrierFrequencyLabel {
+  fill: green;
+}
+
+text#lowFrequencyLabel {
+  fill: blue;
+}
+
 .axis path,
 .axis line {
   fill: none;
