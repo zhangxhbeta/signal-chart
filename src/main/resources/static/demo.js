@@ -782,7 +782,7 @@ $(function () {
         .attr('d', function (d) {
           var path = [
             'M', 0, heightUnit * 3,
-            'A', heightUnit / 2, heightUnit / 2, 0, 1, 1, 0, heightUnit * 3.1,
+            'A', heightUnit / 2, heightUnit / 2, 0, 1, 0, 0, heightUnit * 2.9,
             'Z'
           ];
 
@@ -790,7 +790,7 @@ $(function () {
             // 第二个圆圈
             path = path.concat([
                                  'M', 0, heightUnit * 4,
-                                 'A', heightUnit / 2, heightUnit / 2, 0, 1, 1, 0, heightUnit * 4.1,
+                                 'A', heightUnit / 2, heightUnit / 2, 0, 1, 0, 0, heightUnit * 3.9,
                                  'Z'
                                ]);
           }
