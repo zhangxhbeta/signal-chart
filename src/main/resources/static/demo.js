@@ -81,23 +81,31 @@ $(function () {
   update();
 
   // 添加鼠标点击时的指示竖线
-  var selectLine;
+  var selectLine, selectTip;
   var drag = d3.behavior.drag();
   drag.on('drag', function () {
     var e = d3.mouse(d3.select('#chart').node());
-    var x = adjustX(e[0]);
 
-    if (x < margin.left) {
-      x = margin.left;
+    var l = x.invert(e[0] - margin.left);
+    var index = Math.round(l);
+    var pointX = adjustX(l);
+
+    if (pointX < margin.left) {
+      pointX = margin.left;
     }
 
-    if (x > (size.width - margin.right)) {
-      x = size.width - margin.right;
+    if (pointX > (size.width - margin.right)) {
+      pointX = size.width - margin.right;
     }
 
     if (selectLine) {
-      selectLine.attr('x1', x)
-          .attr('x2', x);
+      selectLine.attr('x1', pointX)
+          .attr('x2', pointX);
+    }
+
+    if (selectTip) {
+      console.log('l: ' + l + ', index: ' + index);
+      updateSelectTip(selectTip, pointX, chartSelectTip(index), index);
     }
   });
 
@@ -107,23 +115,43 @@ $(function () {
     if (e[0] < margin.left || e[0] > (size.width - margin.right)) {
       return;
     }
-
-    var x = adjustX(e[0]);
+    // 处理数据问题
+    var l = x.invert(e[0] - margin.left);
+    var index = Math.round(l);
+    var pointX = adjustX(l);
 
     if (selectLine) {
-      selectLine.attr('x1', x)
-          .attr('x2', x)
+      selectLine.attr('x1', pointX)
+          .attr('x2', pointX)
           .style('display', null);
     } else {
-      selectLine = svg.append('line').attr('x1', x)
+      selectLine = svg.append('line')
+          .attr('x1', pointX)
           .attr('y1', margin.top)
-          .attr('x2', x)
+          .attr('x2', pointX)
           .attr('y2', size.height - margin.bottom)
-          .style('stroke', '#000')
-          .style('stroke-width', '1')
+          .style('stroke', '#FB5F27')
+          .style('stroke-width', '1.5')
           .style('cursor', 'ew-resize')
           .call(drag);
     }
+
+    if (!selectTip) {
+      selectTip = svg.append('g')
+          .attr('class', 'selectTip')
+          .attr('transform', 'translate(' + pointX + ',' + margin.top + ')');
+
+      selectTip.append('rect')
+          .attr("width", fontSize * 5)
+          .attr("height", fontSize * 3.2)
+          .attr('x', 0)
+          .attr('y', 0)
+          .style("fill", '#000')
+          .style('fill-opacity', '0.2');
+    }
+
+    // 更新提示
+    updateSelectTip(selectTip, pointX, chartSelectTip(index), index);
 
   });
 
@@ -159,6 +187,12 @@ $(function () {
         selectLine.style('display', 'none');
       } else {
         selectLine.style('display', null);
+      }
+
+      if (selectTip.style('display') !== 'none') {
+        selectTip.style('display', 'none');
+      } else {
+        selectTip.style('display', null);
       }
     }
   });
@@ -475,7 +509,6 @@ $(function () {
           updateCarrierFrequency(0);
         });
 
-
     svg.append('text')
         .attr('id', 'lowFrequencyLabelToggle')
         .attr('class', 'fontawesome lowFrequencyLabel')
@@ -547,40 +580,44 @@ $(function () {
    * 绘制图表的部分
    */
   function drawChart(chartOffset, chartHeight) {
-    svg.select('g.lineChart').remove();
-
-    // 添加组
-    var groupChart = svg.append('g')
-        .attr('class', 'lineChart')
-        .attr('transform', 'translate(' + margin.left + ',' + chartOffset + ')');
+    var groupChart = svg.select('g.lineChart');
 
     var y = d3.scale.linear()
         .domain([0, voltageMaxs[currentVoltageIndex]])
         .range([chartHeight, 0]);
 
-    // 绘制竖方向网格
-    function makeXAxis() {
-      return d3.svg.axis()
-          .scale(x)
-          .orient("bottom")
-          .ticks(10);
+    if (groupChart.size() === 0) {
+      // 添加组
+      var groupChart = svg.append('g')
+          .attr('class', 'lineChart')
+          .attr('transform', 'translate(' + margin.left + ',' + chartOffset + ')');
+
+      // 绘制竖方向网格
+      function makeXAxis() {
+        return d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .ticks(10);
+      }
+
+      groupChart.append("g")
+          .attr("class", "grid")
+          .call(makeXAxis().tickSize(chartHeight, 0, 0).tickFormat(''));
+
+      // 绘制水平方向网格
+      function makeYAxis() {
+        return d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .ticks(5);
+      }
+
+      groupChart.append("g")
+          .attr("class", "grid")
+          .call(makeYAxis().tickSize(-width, 0, 0).tickFormat(''));
+    } else {
+      groupChart.selectAll('path').remove();
     }
-
-    groupChart.append("g")
-        .attr("class", "grid")
-        .call(makeXAxis().tickSize(chartHeight, 0, 0).tickFormat(''));
-
-    // 绘制水平方向网格
-    function makeYAxis() {
-      return d3.svg.axis()
-          .scale(y)
-          .orient("left")
-          .ticks(5);
-    }
-
-    groupChart.append("g")
-        .attr("class", "grid")
-        .call(makeYAxis().tickSize(-width, 0, 0).tickFormat(''));
 
     // 绘制感应电压
     if (currentVoltageToggle) {
@@ -1248,10 +1285,11 @@ $(function () {
     return dataArray;
   }
 
-  function adjustX(x) {
-    var minWidth = width / xAxisMax;
-    var adjust = x % minWidth;
-    return adjust > minWidth / 2 ? x + minWidth - adjust : x - adjust;
+  function adjustX(index) {
+    return x(index) + margin.left;
+    // var minWidth = width / xAxisMax;
+    // var adjust = x % minWidth;
+    // return adjust > minWidth / 2 ? x + minWidth - adjust : x - adjust;
   }
 
   function updateVoltage(val) {
@@ -1306,7 +1344,7 @@ $(function () {
   }
 
   function voltageText() {
-   return '感应电压 ' + voltageMaxs[currentVoltageIndex] + 'mV';
+    return '感应电压 ' + voltageMaxs[currentVoltageIndex] + 'mV';
   }
 
   function carrierFrequencyText() {
@@ -1321,4 +1359,55 @@ $(function () {
     return toggle ? "\uf046" : '\uf096'
   }
 
+  function chartSelectTip(i) {
+    if (i > dataArray.length - 1) {
+      return [];
+    }
+
+    return [
+      dataArray[i].voltage + 'mV',
+      dataArray[i].carrierFrequency + 'Hz',
+      dataArray[i].lowFrequency + '(Hz/ms)'
+    ];
+  }
+
+  function updateSelectTip(selectTip, pointX, labelData, index) {
+    selectTip.attr('transform', 'translate(' + pointX + ',' + margin.top + ')')
+        .style('display', null);
+
+    var s = selectTip.selectAll('text').data(labelData);
+    s.text(function (d) {
+      return d;
+    });
+    s.exit().remove();
+    s.enter().append('text')
+        .attr('x', 0)
+        .attr('y', function (d, i) {
+          return i * fontSize;
+        })
+        .attr('dy', '1em')
+        .text(function (d) {
+          return d;
+        })
+        .style('font-weight', 'bold')
+        .style('fill-opacity', '0.7')
+        .style('fill', function (d, i) {
+
+          if (i === 0) {
+            return 'red';
+          } else if (i === 1) {
+            return 'green';
+          } else if (i === 2) {
+            return 'blue';
+          } else {
+            return 'black';
+          }
+        });
+
+    if (index > dataArray.length - 1) {
+      selectTip.select('rect').style('display', 'none');
+    } else {
+      selectTip.select('rect').style('display', null);
+    }
+  }
 });
