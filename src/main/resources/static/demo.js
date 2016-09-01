@@ -5,37 +5,42 @@
  */
 $(function () {
 
-  // 首先计算一下高度宽度
-  var aspectRatio = 3; // 图表高度宽度比例 1:3
+  // demo 部分
+  d3.select('#version').html('机车图实时演示 (随机模拟数据)');
+
+  // 非组件部分
   var minDetailHeight = 30; // 详情区域最小高度 30px
-  var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
-  var gridSize = 48; // 将大图表横向划分为固定的高度单元, 然后方便分配
+  var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var xAxisMax = 1200; // 图表中展示的数据记录条数
+
+  // 组件常量
+  var gridSize = 48; // 将大图表横向划分为固定的高度单元, 然后方便分配
+
+  // 组件初始化参数
+  var aspectRatio = 3; // 图表高度宽度比例 1:3
+  var chartContainerSelector = '#chart'; // 图表容器
   var margin = {
     top: 5,
     right: 28,
     bottom: 25,
     left: 150
   };
-  var fontSize = 12;
-  var fontSizeOffset = fontSize / 2;
-  var labelLeftMargin = 30;
-  var firstDateLabelFormat = d3.time.format('%Y-%m-%d');
-  var dateLabelFormat = d3.time.format("%H:%M:%S");
+  var fontSize = 14; // 字体大小
+  var fontSizeOffset = fontSize / 2; // 字体便宜量
+  var labelLeftMargin = 30; // 标签左边距
+  var firstDateLabelFormat = d3.time.format('%Y-%m-%d'); // 坐标轴第一个值的标签格式
+  var dateLabelFormat = d3.time.format("%H:%M:%S");      // 坐标轴日期格式
   var voltageMaxs = [4000, 2000, 1000, 400, 200, 100, 40, 20, 10];
   var carrierFrequencyMaxs = [4000, 2000, 1000, 400, 200, 100, 50];
   var lowFrequencyMaxs = [4000, 2000, 100, 40];
   var currentVoltageIndex = 1, currentCarrierFrequencyIndex = 0, currentLowFrequencyIndex = 3; // 感应电压/低频/载频部分的图表y轴最大值
+  var currentVoltageToggle = true, currentCarrierFrequencyIndexToggle = true, currentLowFrequencyToggle = true;
+  var dataArray = generateTestData(); // 测试数据
 
+  // 初始化部分
   // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
-  var size = calcChartSize();
-
-  // 根据窗口高度布局一次详情表格高度, 然后绑定 resiz 事件处理
-  // 这里做了响应式, 如果是手机屏幕就不做自适应了
-  if ($(window).innerWidth() > smallDevicesWidth) {
-    layoutDetail(size.height);
-  }
+  var size = calcChartSize(chartContainerSelector);
 
   // 开始部分，准备svg画布
   var svg = d3.select('#chart').append('svg')
@@ -43,7 +48,6 @@ $(function () {
       .attr('height', size.height)
       .attr('viewBox', '0 0 ' + size.width + " " + size.height)
       .style('display', 'block');
-  d3.select('#version').html('机车图demo演示 (随机模拟数据)');
 
   // svg 画布已准备妥当，开始准备图表元素
   var height = size.height - margin.bottom - margin.top,
@@ -55,9 +59,6 @@ $(function () {
   var x = d3.scale.linear()
       .domain([0, xAxisMax])
       .range([0, width]);
-
-  // 生成测试数据
-  var dataArray = generateTestData();
 
   // 计算子图表高度
   var chartOffset = margin.top;
@@ -128,11 +129,11 @@ $(function () {
 
   // 处理按钮事件
   $('#voltageUpBtn').on('click', function () {
-    updateVoltageRange(1);
+    updateVoltage(1);
   });
 
   $('#voltageDownBtn').on('click', function () {
-    updateVoltageRange(-1);
+    updateVoltage(-1);
   });
 
   $('#carrierFrequencyUpBtn').on('click', function () {
@@ -162,9 +163,15 @@ $(function () {
     }
   });
 
+  // 根据窗口高度布局一次详情表格高度, 然后绑定 resiz 事件处理
+  // 这里做了响应式, 如果是手机屏幕就不做自适应了
+  if ($(window).innerWidth() > smallDevicesWidth) {
+    layoutDetail(size.height);
+  }
+
   // 对窗口缩放做一下处理
   $(window).resize(function () {
-    var size = calcChartSize();
+    var size = calcChartSize(chartContainerSelector);
     $('#chart svg').height(size.height);
 
     if ($(window).innerWidth() > 767) {
@@ -418,73 +425,121 @@ $(function () {
   }
 
   function drawText() {
+    var chartLabelMarginLeft = 14;
+
+    svg.append('text')
+        .attr('id', 'voltageLabelToggle')
+        .attr('class', 'fontawesome voltageLabel')
+        .attr('x', 0)
+        .attr('y', chartOffset + fontSizeOffset)
+        .attr('dy', '.35em')
+        .text(toggleText(currentVoltageToggle))
+        .on('click', function () {
+          currentVoltageToggle = !currentVoltageToggle;
+          updateVoltage(0);
+        });
+
     svg.append('text')
         .attr('id', 'voltageLabel')
-        .attr("x", 0)
+        .attr('class', 'voltageLabel')
+        .attr("x", chartLabelMarginLeft)
         .attr("y", chartOffset + fontSizeOffset)
         .attr("dy", ".35em")
-        .text(voltageMaxs[currentVoltageIndex] + 'mV');
+        .text(voltageText())
+        .on('click', function () {
+          currentVoltageToggle = !currentVoltageToggle;
+          updateVoltage(0);
+        });
+
+    svg.append('text')
+        .attr('id', 'carrierFrequencyLabelToggle')
+        .attr('class', 'fontawesome carrierFrequencyLabel')
+        .attr('x', 0)
+        .attr('y', chartOffset + fontSizeOffset + fontSize)
+        .attr('dy', '.35em')
+        .text(toggleText(currentCarrierFrequencyIndexToggle))
+        .on('click', function () {
+          currentCarrierFrequencyIndexToggle = !currentCarrierFrequencyIndexToggle;
+          updateCarrierFrequency(0);
+        });
 
     svg.append('text')
         .attr('id', 'carrierFrequencyLabel')
-        .attr("x", 0)
+        .attr('class', 'carrierFrequencyLabel')
+        .attr("x", chartLabelMarginLeft)
         .attr("y", chartOffset + fontSizeOffset + fontSize)
         .attr("dy", ".35em")
-        .text(carrierFrequencyMaxs[currentCarrierFrequencyIndex] + 'Hz');
+        .text(carrierFrequencyText())
+        .on('click', function () {
+          currentCarrierFrequencyIndexToggle = !currentCarrierFrequencyIndexToggle;
+          updateCarrierFrequency(0);
+        });
+
+
+    svg.append('text')
+        .attr('id', 'lowFrequencyLabelToggle')
+        .attr('class', 'fontawesome lowFrequencyLabel')
+        .attr('x', 0)
+        .attr('y', chartOffset + fontSizeOffset + fontSize * 2)
+        .attr('dy', '.35em')
+        .text(toggleText(currentLowFrequencyToggle))
+        .on('click', function () {
+          currentLowFrequencyToggle = !currentLowFrequencyToggle;
+          updateLowFrequency(0);
+        });
 
     svg.append('text')
         .attr('id', 'lowFrequencyLabel')
-        .attr("x", 0)
+        .attr('class', 'lowFrequencyLabel')
+        .attr("x", chartLabelMarginLeft)
         .attr("y", chartOffset + fontSizeOffset + fontSize * 2)
         .attr("dy", ".35em")
-        .text(lowFrequencyMaxs[currentLowFrequencyIndex] + '(Hz/ms)');
-
-    svg.append('text')
-        .attr("x", 0)
-        .attr("y", chartOffset + gridHeight * 6)
-        .attr("dy", ".55em")
-        .text('上电标志');
+        .text(lowFrequencyText())
+        .on('click', function () {
+          currentLowFrequencyToggle = !currentLowFrequencyToggle;
+          updateLowFrequency(0);
+        });
 
     svg.append('text')
         .attr("x", labelLeftMargin)
         .attr("y", lampBeltOffset + fontSizeOffset)
-        .attr("dy", ".55em")
+        .attr("dy", ".4em")
         .text('灯码');
 
     svg.append('text')
         .attr("x", labelLeftMargin)
         .attr("y", semaphoreOffset + gridHeight + fontSizeOffset)
-        .attr("dy", ".55em")
+        .attr("dy", ".35em")
         .text('信号机');
 
     svg.append('text')
         .attr("x", labelLeftMargin)
         .attr("y", insulationOffset + fontSizeOffset)
-        .attr("dy", ".55em")
+        .attr("dy", ".35em")
         .text('绝缘');
 
     svg.append('text')
         .attr("x", labelLeftMargin)
         .attr("y", upDownOffset + fontSizeOffset)
-        .attr("dy", ".55em")
+        .attr("dy", ".35em")
         .text('上/下行');
 
     svg.append('text')
         .attr("x", labelLeftMargin)
         .attr("y", abOffset + fontSizeOffset)
-        .attr("dy", ".55em")
+        .attr("dy", ".35em")
         .text('A/B机');
 
     svg.append('text')
         .attr("x", labelLeftMargin)
         .attr("y", port12Offset + fontSizeOffset)
-        .attr("dy", ".55em")
+        .attr("dy", ".35em")
         .text('Ⅰ/Ⅱ端');
 
     svg.append('text')
         .attr("x", labelLeftMargin)
         .attr("y", margin.top + height + fontSizeOffset)
-        .attr("dy", ".55em")
+        .attr("dy", ".35em")
         .text('时间里程');
   }
 
@@ -499,6 +554,10 @@ $(function () {
         .attr('class', 'lineChart')
         .attr('transform', 'translate(' + margin.left + ',' + chartOffset + ')');
 
+    var y = d3.scale.linear()
+        .domain([0, voltageMaxs[currentVoltageIndex]])
+        .range([chartHeight, 0]);
+
     // 绘制竖方向网格
     function makeXAxis() {
       return d3.svg.axis()
@@ -511,21 +570,10 @@ $(function () {
         .attr("class", "grid")
         .call(makeXAxis().tickSize(chartHeight, 0, 0).tickFormat(''));
 
-    // 绘制感应电压
-    var yVoltage = d3.scale.linear()
-        .domain([0, voltageMaxs[currentVoltageIndex]])
-        .range([chartHeight, 0]);
-
-    var lineVoltage = d3.svg.line().x(function (d, i) {
-      return x(i);
-    }).y(function (d) {
-      return yVoltage(d.voltage);
-    });
-
-    // 绘制背景网格/x/y轴
+    // 绘制水平方向网格
     function makeYAxis() {
       return d3.svg.axis()
-          .scale(yVoltage)
+          .scale(y)
           .orient("left")
           .ticks(5);
     }
@@ -534,52 +582,66 @@ $(function () {
         .attr("class", "grid")
         .call(makeYAxis().tickSize(-width, 0, 0).tickFormat(''));
 
-    groupChart.append("path")
-        .attr('class', 'pathVoltage')
-        .datum(dataArray)
-        .attr("d", lineVoltage)
-        .style("fill", "none")
-        .style("stroke-width", 1)
-        .style("stroke", '#d00')
-        .style("stroke-opacity", 0.9);
+    // 绘制感应电压
+    if (currentVoltageToggle) {
+      var yVoltage = y;
+      var lineVoltage = d3.svg.line().x(function (d, i) {
+        return x(i);
+      }).y(function (d) {
+        return yVoltage(d.voltage);
+      });
+
+      groupChart.append("path")
+          .attr('class', 'pathVoltage')
+          .datum(dataArray)
+          .attr("d", lineVoltage)
+          .style("fill", "none")
+          .style("stroke-width", 1)
+          .style("stroke", '#d00')
+          .style("stroke-opacity", 0.9);
+    }
 
     // 绘制载频
-    var yCarrierFrequency = d3.scale.linear()
-        .domain([0, carrierFrequencyMaxs[currentCarrierFrequencyIndex]])
-        .range([chartHeight, 0]);
+    if (currentCarrierFrequencyIndexToggle) {
+      var yCarrierFrequency = d3.scale.linear()
+          .domain([0, carrierFrequencyMaxs[currentCarrierFrequencyIndex]])
+          .range([chartHeight, 0]);
 
-    var lineCarrierFrequency = d3.svg.line().x(function (d, i) {
-      return x(i);
-    }).y(function (d) {
-      return yCarrierFrequency(d.carrierFrequency);
-    }).interpolate("step-after");
+      var lineCarrierFrequency = d3.svg.line().x(function (d, i) {
+        return x(i);
+      }).y(function (d) {
+        return yCarrierFrequency(d.carrierFrequency);
+      }).interpolate("step-after");
 
-    groupChart.append("path")
-        .datum(dataArray)
-        .attr("d", lineCarrierFrequency)
-        .style("fill", "none")
-        .style("stroke-width", 1)
-        .style("stroke", '#0d0')
-        .style("stroke-opacity", 0.9);
+      groupChart.append("path")
+          .datum(dataArray)
+          .attr("d", lineCarrierFrequency)
+          .style("fill", "none")
+          .style("stroke-width", 1)
+          .style("stroke", '#0d0')
+          .style("stroke-opacity", 0.9);
+    }
 
     // 绘制低频
-    var yLowFrequency = d3.scale.linear()
-        .domain([0, lowFrequencyMaxs[currentLowFrequencyIndex]])
-        .range([chartHeight, 0]);
+    if (currentLowFrequencyToggle) {
+      var yLowFrequency = d3.scale.linear()
+          .domain([0, lowFrequencyMaxs[currentLowFrequencyIndex]])
+          .range([chartHeight, 0]);
 
-    var lineLowFrequency = d3.svg.line().x(function (d, i) {
-      return x(i);
-    }).y(function (d) {
-      return yLowFrequency(d.lowFrequency);
-    }).interpolate("step-after");
+      var lineLowFrequency = d3.svg.line().x(function (d, i) {
+        return x(i);
+      }).y(function (d) {
+        return yLowFrequency(d.lowFrequency);
+      }).interpolate("step-after");
 
-    groupChart.append("path")
-        .datum(dataArray)
-        .attr("d", lineLowFrequency)
-        .style("fill", "none")
-        .style("stroke-width", 1)
-        .style("stroke", '#00d')
-        .style("stroke-opacity", 0.9);
+      groupChart.append("path")
+          .datum(dataArray)
+          .attr("d", lineLowFrequency)
+          .style("fill", "none")
+          .style("stroke-width", 1)
+          .style("stroke", '#00d')
+          .style("stroke-opacity", 0.9);
+    }
   }
 
   /**
@@ -954,8 +1016,8 @@ $(function () {
    * 计算图表的大小, 根据容器大小自适应
    * @returns {{width: *, height: number}} 图表的大小
    */
-  function calcChartSize() {
-    var boxWidth, box = d3.select("#chart").node().getBoundingClientRect();
+  function calcChartSize(element) {
+    var boxWidth, box = d3.select(element).node().getBoundingClientRect();
     if (!box.width) {
       boxWidth = box.width;
     } else {
@@ -1192,7 +1254,7 @@ $(function () {
     return adjust > minWidth / 2 ? x + minWidth - adjust : x - adjust;
   }
 
-  function updateVoltageRange(val) {
+  function updateVoltage(val) {
     currentVoltageIndex += val;
     if (val > 0 && currentVoltageIndex > voltageMaxs.length - 1) {
       currentVoltageIndex = voltageMaxs.length - 1;
@@ -1201,7 +1263,7 @@ $(function () {
     }
 
     drawChart(chartOffset, chartHeight);
-    d3.select('#voltageLabel').text(voltageMaxs[currentVoltageIndex] + 'mV');
+    updateVoltageLabel();
   }
 
   function updateCarrierFrequency(val) {
@@ -1213,8 +1275,7 @@ $(function () {
     }
 
     drawChart(chartOffset, chartHeight);
-    d3.select('#carrierFrequencyLabel')
-        .text(carrierFrequencyMaxs[currentCarrierFrequencyIndex] + 'Hz');
+    updateCarrierFrequencyLabel();
   }
 
   function updateLowFrequency(val) {
@@ -1226,6 +1287,38 @@ $(function () {
     }
 
     drawChart(chartOffset, chartHeight);
-    d3.select('#lowFrequencyLabel').text(lowFrequencyMaxs[currentLowFrequencyIndex] + '(Hz/ms)');
+    updateLowFrequencyLabel();
   }
+
+  function updateVoltageLabel() {
+    d3.select('#voltageLabel').text(voltageText());
+    d3.select('#voltageLabelToggle').text(toggleText(currentVoltageToggle))
+  }
+
+  function updateCarrierFrequencyLabel() {
+    d3.select('#carrierFrequencyLabel').text(carrierFrequencyText());
+    d3.select('#carrierFrequencyLabelToggle').text(toggleText(currentCarrierFrequencyIndexToggle));
+  }
+
+  function updateLowFrequencyLabel() {
+    d3.select('#lowFrequencyLabel').text(lowFrequencyText());
+    d3.select('#lowFrequencyLabelToggle').text(toggleText(currentLowFrequencyToggle));
+  }
+
+  function voltageText() {
+   return '感应电压 ' + voltageMaxs[currentVoltageIndex] + 'mV';
+  }
+
+  function carrierFrequencyText() {
+    return '中心频 ' + carrierFrequencyMaxs[currentCarrierFrequencyIndex] + 'Hz';
+  }
+
+  function lowFrequencyText() {
+    return '低频 ' + lowFrequencyMaxs[currentLowFrequencyIndex] + '(Hz/ms)';
+  }
+
+  function toggleText(toggle) {
+    return toggle ? "\uf046" : '\uf096'
+  }
+
 });

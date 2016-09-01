@@ -35,16 +35,23 @@
 }
 
 /*图表样式*/
-text#voltageLabel {
+text.voltageLabel {
   fill: red;
+  cursor: pointer;
 }
 
-text#carrierFrequencyLabel {
+text.carrierFrequencyLabel {
   fill: green;
+  cursor: pointer;
 }
 
-text#lowFrequencyLabel {
+text.lowFrequencyLabel {
   fill: blue;
+  cursor: pointer;
+}
+
+text.fontawesome {
+  font-family: FontAwesome;
 }
 
 .axis path,
