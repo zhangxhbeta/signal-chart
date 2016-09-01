@@ -16,6 +16,7 @@ $(function () {
 
   // 组件常量
   var gridSize = 48; // 将大图表横向划分为固定的高度单元, 然后方便分配
+  var timeoutHandler;
 
   // 组件初始化参数
   var aspectRatio = 3; // 图表高度宽度比例 1:3
@@ -89,6 +90,7 @@ $(function () {
     var l = x.invert(e[0] - margin.left);
     var index = Math.round(l);
     var pointX = adjustX(l);
+    var pointY = e[1] - margin.top;
 
     if (pointX < margin.left) {
       pointX = margin.left;
@@ -105,7 +107,7 @@ $(function () {
 
     if (selectTip) {
       console.log('l: ' + l + ', index: ' + index);
-      updateSelectTip(selectTip, pointX, chartSelectTip(index), index);
+      updateSelectTip(selectTip, pointX, pointY, index);
     }
   });
 
@@ -119,6 +121,7 @@ $(function () {
     var l = x.invert(e[0] - margin.left);
     var index = Math.round(l);
     var pointX = adjustX(l);
+    var pointY = e[1] - margin.top;
 
     if (selectLine) {
       selectLine.attr('x1', pointX)
@@ -151,7 +154,7 @@ $(function () {
     }
 
     // 更新提示
-    updateSelectTip(selectTip, pointX, chartSelectTip(index), index);
+    updateSelectTip(selectTip, pointX, pointY, index);
 
   });
 
@@ -1360,7 +1363,7 @@ $(function () {
   }
 
   function chartSelectTip(i) {
-    if (i > dataArray.length - 1) {
+    if (i < 0 || i > dataArray.length - 1) {
       return [];
     }
 
@@ -1371,15 +1374,24 @@ $(function () {
     ];
   }
 
-  function updateSelectTip(selectTip, pointX, labelData, index) {
-    selectTip.attr('transform', 'translate(' + pointX + ',' + margin.top + ')')
+  function updateSelectTip(selectTip, pointX, pointY, index) {
+
+    var labelData = chartSelectTip(index);
+    var mouseMargin = {
+      x: 8,
+      y: 8
+    };
+
+    selectTip.attr('transform', 'translate(' + (pointX + mouseMargin.x) + ',' + (pointY + mouseMargin.y) + ')')
         .style('display', null);
 
     var s = selectTip.selectAll('text').data(labelData);
     s.text(function (d) {
       return d;
-    });
+    }).style('display', null);
+
     s.exit().remove();
+
     s.enter().append('text')
         .attr('x', 0)
         .attr('y', function (d, i) {
@@ -1404,10 +1416,21 @@ $(function () {
           }
         });
 
-    if (index > dataArray.length - 1) {
-      selectTip.select('rect').style('display', 'none');
+    var bg = selectTip.select('rect');
+    if (index < 0 || index > dataArray.length - 1) {
+      bg.style('display', 'none');
     } else {
-      selectTip.select('rect').style('display', null);
+      bg.style('display', null);
     }
+
+    // 隔多少秒隐藏
+    if (timeoutHandler) {
+      clearTimeout(timeoutHandler);
+    }
+
+    timeoutHandler = setTimeout(function () {
+      selectTip.select('rect').style('display', 'none');
+      selectTip.selectAll('text').style('display', 'none');
+    }, 3000);
   }
 });
