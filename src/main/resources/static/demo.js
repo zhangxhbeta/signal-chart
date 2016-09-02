@@ -1,5 +1,7 @@
 /**
- * 往文档里面的 #chart 里面塞一张堆积图
+ * 机车图演示, 通过调用机车图表库实现图表显示
+ * 通过详情部分做滚动处理来实现一屏正好显示下, 方便用户不用滚动屏幕
+ * 能同时看到图表和数据部分
  *
  * @author zhangxh
  */
@@ -13,6 +15,7 @@ $(function () {
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var xAxisMax = 1200;
+  var dataFormat = d3.time.format('%Y-%m-%d %H:%M:%S'); // 日期格式
 
   // 往 dataArry 里放初次数据, 之后每隔一段时间往 dataArray 里面追加一段数据, 最多不超过 xAxisMax 条, 超过后删掉最前面的数据
   var dataArray = []; // 初始值空
@@ -20,7 +23,21 @@ $(function () {
 
   // 初始化图表
   var chart = xhchart.signal({
-                               dataArray: dataArray
+                               xAxisMax: xAxisMax, // x轴数据总数量
+                               dataArray: dataArray, // 提供给图表的数据数组
+                               onSelectLine: function (index, data) {
+                                 // index 是当前选中索引
+                                 // data 是当前选择的 dataArray 里面的数据
+                                 // 用户拖动改变竖线时触发
+                                 $('#time').text(dataFormat(data.date));
+                                 $('#speed').text(data.speed);
+                                 $('#stationNo').text(data.stationNo);
+                                 $('#voltage').text(data.voltage);
+                                 $('#lowFrequency').text(data.lowFrequency);
+                                 $('#carrierFrequency').text(data.carrierFrequency);
+
+                                 // ... 更新其他表格信息
+                               }
                              });
 
   // 处理按钮事件
@@ -283,20 +300,31 @@ $(function () {
       }
 
       dataArray.push({
+                       // 灯状态
+                       // 'L'     绿灯
+                       // 'U'     黄灯
+                       // 'UU'    双黄灯
+                       // 'HU'    红黄灯
+                       // 'LU'    绿黄灯
+                       // 'U2'    黄2灯
+                       // 'H'     红灯
+                       // 'B'     白灯
+                       // ''      空白无码
                        lamp: lamp,
-                       voltage: voltage,
-                       carrierFrequency: carrierFrequency,
-                       lowFrequency: lowFrequency,
-                       speed: speed,
-                       stationName: stationName,
-                       stationNo: stationNo,
-                       seamaphoreNo: seamaphoreNo,
-                       seamaphoreState: seamaphoreState,
-                       upDown: upDown,
-                       insulation: insulation,
-                       ab: ab,
-                       port12: port12,
-                       date: lastData ? new Date(lastData.date.getTime() + 1000)
+                       voltage: voltage,                   // 感应电压
+                       carrierFrequency: carrierFrequency, // 中心频/载频
+                       lowFrequency: lowFrequency,         // 低频
+                       speed: speed,                       // 速度
+                       stationName: stationName,           // 车站名
+                       stationNo: stationNo,               // 车站号
+                       seamaphoreNo: seamaphoreNo,         // 信号机号
+                       seamaphoreState: seamaphoreState,   // 信号机状态, 通过 'pass', 预告 'notice', 进站
+                                                           // 'in', 出站 'out'
+                       upDown: upDown,                     // 上行/下行标志, 上行 'S', 下行 'X'
+                       insulation: insulation,             // 绝缘, 0 和 1 2种状态
+                       ab: ab,                             // ab机, 0 和 1 2种状态
+                       port12: port12,                     // Ⅰ/Ⅱ端, 0 和 1 2种状态,
+                       date: lastData ? new Date(lastData.date.getTime() + 1000) // 当前时间
                            : new Date(startDate)
                      });
     }

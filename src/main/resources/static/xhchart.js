@@ -17,7 +17,7 @@
 
     // 组件初始化参数
     var option = {
-      xAxisMax: 1200,
+      xAxisMax: initOption.xAxisMax || 1200,
       aspectRatio: 3, // 图表高度宽度比例 1:3
       chartContainerSelector: '#chart', // 图表容器
       margin: {
@@ -42,8 +42,9 @@
       currentCarrierFrequencyIndexToggle: true,
       currentLowFrequencyToggle: true,
       currentSpeedToggle: true, // 速度图表是否选中
-      dataArray: initOption.dataArray, // 测试数据
-      carrierFrequencyStartValues: [25, 550, 1700]
+      dataArray: initOption.dataArray || [], // 测试数据
+      carrierFrequencyStartValues: [25, 550, 1700],
+      onSelectLine: initOption.onSelectLine
     };
 
     var fontSizeOffset = option.fontSize / 2;
@@ -52,7 +53,7 @@
 
     var timeoutHandler;
     var _svgSize;
-    
+
     // 初始化部分
     // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
     var size = _svgSize = calcChartSize();
@@ -189,7 +190,7 @@
 
       // 绘制绝缘
       drawChairLine(insulationOffset, 'insulation', 'url(#line-gradient-insulation)', function (d) {
-        return y(d.insulation);
+        return y(d.insulation || 0);
       });
 
       // 绘制上/下行
@@ -199,12 +200,12 @@
 
       // 绘制A/B机
       drawChairLine(abOffset, 'ab', '#009a00', function (d) {
-        return y(d.ab);
+        return y(d.ab || 0);
       });
 
       // 绘制 1/2 端
       drawChairLine(port12Offset, 'port12', '#0000a2', function (d) {
-        return y(d.port12);
+        return y(d.port12 || 0);
       });
 
       // 绘制 x 轴
@@ -608,7 +609,7 @@
         var lineVoltage = d3.svg.line().x(function (d, i) {
           return x(i);
         }).y(function (d) {
-          return yVoltage(d.voltage);
+          return yVoltage(d.voltage || 0);
         });
 
         groupChart.append("path")
@@ -645,7 +646,7 @@
         var lineCarrierFrequency = d3.svg.line().x(function (d, i) {
           return x(i);
         }).y(function (d) {
-          return yCarrierFrequency(d.carrierFrequency);
+          return yCarrierFrequency(d.carrierFrequency || start);
         }).interpolate("step-after");
 
         groupChart.append("path")
@@ -666,7 +667,7 @@
         var lineLowFrequency = d3.svg.line().x(function (d, i) {
           return x(i);
         }).y(function (d) {
-          return yLowFrequency(d.lowFrequency);
+          return yLowFrequency(d.lowFrequency || 0);
         }).interpolate("step-after");
 
         groupChart.append("path")
@@ -687,7 +688,7 @@
         var lineSpeed = d3.svg.line().x(function (d, i) {
           return x(i);
         }).y(function (d) {
-          return ySpeed(d.speed);
+          return ySpeed(d.speed || 0);
         });
 
         groupChart.append("path")
@@ -728,6 +729,10 @@
           return 'red';
         } else if (d.lamp === 'B') {
           return 'white';
+        }
+
+        if (d.lamp === undefined) {
+          return null;
         }
 
         return 'url(#line-gradient-lamp-' + d.lamp.toLowerCase() + ')';
@@ -821,6 +826,10 @@
           return 'red';
         } else if (d.lamp === 'B') {
           return 'white';
+        }
+
+        if (d.lamp === undefined) {
+          return null;
         }
 
         return 'url(#line-gradient-lamp-belt-' + d.lamp.toLowerCase() + ')';
@@ -936,7 +945,8 @@
               // 第二个圆圈
               path = path.concat([
                                    'M', 0, heightUnit * 4,
-                                   'A', heightUnit / 2, heightUnit / 2, 0, 1, 0, 0, heightUnit * 3.9,
+                                   'A', heightUnit / 2, heightUnit / 2, 0, 1, 0, 0,
+                                   heightUnit * 3.9,
                                    'Z'
                                  ]);
             }
@@ -1008,7 +1018,7 @@
           .attr("dy", ".4em")
           .style('font-size', '8pt')
           .text(function (d) {
-            return d.value.upDown + ' ' + d.value.seamaphoreNo;
+            return (d.value.upDown || '') + ' ' + (d.value.seamaphoreNo || '');
           });
     }
 
@@ -1025,6 +1035,11 @@
             if (d >= option.dataArray.length) {
               return '';
             }
+
+            if (!option.dataArray[d].date) {
+              return '';
+            }
+
             if (d == 0) {
               return option.firstDateLabelFormat(option.dataArray[d].date);
             } else {
@@ -1065,7 +1080,7 @@
       return x(index) + option.margin.left;
     }
 
-    var updateVoltage = function(val) {
+    var updateVoltage = function (val) {
       option.currentVoltageMaxIndex += val;
       if (val > 0 && option.currentVoltageMaxIndex > option.voltageMaxs.length - 1) {
         option.currentVoltageMaxIndex = option.voltageMaxs.length - 1;
@@ -1077,9 +1092,10 @@
       updateVoltageLabel();
     };
 
-    var updateCarrierFrequency = function(val) {
+    var updateCarrierFrequency = function (val) {
       option.currentCarrierFrequencyMaxIndex += val;
-      if (val > 0 && option.currentCarrierFrequencyMaxIndex > option.carrierFrequencyMaxs.length - 1) {
+      if (val > 0 && option.currentCarrierFrequencyMaxIndex > option.carrierFrequencyMaxs.length
+                                                              - 1) {
         option.currentCarrierFrequencyMaxIndex = option.carrierFrequencyMaxs.length - 1;
       } else if (val < 0 && option.currentCarrierFrequencyMaxIndex < 0) {
         option.currentCarrierFrequencyMaxIndex = 0;
@@ -1089,7 +1105,7 @@
       updateCarrierFrequencyLabel();
     };
 
-    var updateLowFrequency = function(val) {
+    var updateLowFrequency = function (val) {
       option.currentLowFrequencyMaxIndex += val;
       if (val > 0 && option.currentLowFrequencyMaxIndex > option.lowFrequencyMaxs.length - 1) {
         option.currentLowFrequencyMaxIndex = option.lowFrequencyMaxs.length - 1;
@@ -1101,7 +1117,7 @@
       updateLowFrequencyLabel();
     };
 
-    var updateSpeed = function(val) {
+    var updateSpeed = function (val) {
       option.currentSpeedMaxIndex += val;
       if (val > 0 && option.currentSpeedMaxIndex > option.speedMaxs.length - 1) {
         option.currentSpeedMaxIndex = option.speedMaxs.length - 1;
@@ -1120,7 +1136,8 @@
 
     function updateCarrierFrequencyLabel() {
       d3.select('#carrierFrequencyLabel').text(carrierFrequencyText());
-      d3.select('#carrierFrequencyLabelToggle').text(toggleText(option.currentCarrierFrequencyIndexToggle));
+      d3.select('#carrierFrequencyLabelToggle')
+          .text(toggleText(option.currentCarrierFrequencyIndexToggle));
     }
 
     function updateLowFrequencyLabel() {
@@ -1159,10 +1176,10 @@
       }
 
       return [
-        option.dataArray[i].voltage + 'mV',
-        option.dataArray[i].carrierFrequency + 'Hz',
-        option.dataArray[i].lowFrequency + '(Hz/ms)',
-        option.dataArray[i].speed + '(km/h)'
+        (option.dataArray[i].voltage || '未提供') + 'mV',
+        (option.dataArray[i].carrierFrequency || '未提供') + 'Hz',
+        (option.dataArray[i].lowFrequency || '未提供') + '(Hz/ms)',
+        (option.dataArray[i].speed || '未提供') + '(km/h)'
       ];
     }
 
@@ -1229,6 +1246,11 @@
         bg.style('display', null);
       }
 
+      // 触发事件处理函数
+      if (option.onSelectLine && index >= 0 && index < option.dataArray.length) {
+        option.onSelectLine(index, option.dataArray[index]);
+      }
+
       // 隔多少秒隐藏
       if (timeoutHandler) {
         clearTimeout(timeoutHandler);
@@ -1239,8 +1261,8 @@
         selectTip.selectAll('text').style('display', 'none');
       }, 3000);
     }
-    
-    var toggleSelectLine = function() {
+
+    var toggleSelectLine = function () {
       if (selectLine) {
         if (selectLine.style('display') !== 'none') {
           selectLine.style('display', 'none');
