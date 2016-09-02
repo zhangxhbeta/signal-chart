@@ -16,7 +16,6 @@ $(function () {
 
   // 组件常量
   var gridSize = 48; // 将大图表横向划分为固定的高度单元, 然后方便分配
-  var timeoutHandler;
 
   // 组件初始化参数
   var aspectRatio = 3; // 图表高度宽度比例 1:3
@@ -38,6 +37,9 @@ $(function () {
   var currentVoltageIndex = 1, currentCarrierFrequencyIndex = 0, currentLowFrequencyIndex = 3; // 感应电压/低频/载频部分的图表y轴最大值
   var currentVoltageToggle = true, currentCarrierFrequencyIndexToggle = true, currentLowFrequencyToggle = true;
   var dataArray = generateTestData(); // 测试数据
+  var timeoutHandler;
+  var chartTipRectWidth = fontSize * 5, chartTipRectHeight = fontSize * 3.2;
+  var carrierFrequencyStartValues = [25, 550, 1700];
 
   // 初始化部分
   // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
@@ -145,8 +147,8 @@ $(function () {
           .attr('transform', 'translate(' + pointX + ',' + margin.top + ')');
 
       selectTip.append('rect')
-          .attr("width", fontSize * 5)
-          .attr("height", fontSize * 3.2)
+          .attr("width", chartTipRectWidth)
+          .attr("height", chartTipRectHeight)
           .attr('x', 0)
           .attr('y', 0)
           .style("fill", '#000')
@@ -233,22 +235,22 @@ $(function () {
         .range([gridHeight * 2, 0]);
 
     // 绘制绝缘
-    drawInsulationChairLine(insulationOffset, function (d) {
+    drawChairLine(insulationOffset, 'insulation', 'url(#line-gradient-insulation)', function (d) {
       return y(d.insulation);
     });
 
     // 绘制上/下行
-    drawChairLine(upDownOffset, 'updown', function (d) {
+    drawChairLine(upDownOffset, 'updown', '#ec8100', function (d) {
       return y(d.upDown === 'X' ? 1 : 0);
     });
 
     // 绘制A/B机
-    drawChairLine(abOffset, 'ab', function (d) {
+    drawChairLine(abOffset, 'ab', '#009a00', function (d) {
       return y(d.ab);
     });
 
     // 绘制 1/2 端
-    drawChairLine(port12Offset, 'port12', function (d) {
+    drawChairLine(port12Offset, 'port12', '#0000a2', function (d) {
       return y(d.port12);
     });
 
@@ -643,8 +645,23 @@ $(function () {
 
     // 绘制载频
     if (currentCarrierFrequencyIndexToggle) {
+
+      // 计算最小值
+      var min = d3.min(dataArray, function (d) {
+        return d.carrierFrequency;
+      });
+
+      var start = carrierFrequencyStartValues[0];
+      for (var i = 1; i < carrierFrequencyStartValues.length; i++) {
+        if (min >= carrierFrequencyStartValues[i]) {
+          start = carrierFrequencyStartValues[i];
+        } else {
+          break;
+        }
+      }
+
       var yCarrierFrequency = d3.scale.linear()
-          .domain([0, carrierFrequencyMaxs[currentCarrierFrequencyIndex]])
+          .domain([start, carrierFrequencyMaxs[currentCarrierFrequencyIndex]])
           .range([chartHeight, 0]);
 
       var lineCarrierFrequency = d3.svg.line().x(function (d, i) {
@@ -757,6 +774,13 @@ $(function () {
     // 添加灯带
     var lampBeltGroup = svg.select('g.lampBelt');
     if (lampBeltGroup.size() == 0) {
+      svg.append('rect')
+          .attr('class', 'lamp-background')
+          .attr("width", width)
+          .attr("height", lampBeltHeight * 2)
+          .attr('y', lampBeltOffset - lampBeltHeight / 2)
+          .attr('x', margin.left);
+
       lampBeltGroup = svg.append('g')
           .attr('class', 'lampBelt')
           .attr('transform', 'translate(' + margin.left + ',' + lampBeltOffset + ')');
@@ -829,7 +853,7 @@ $(function () {
   /**
    * 绘制阶梯图
    */
-  function drawChairLine(seamaphoreOffset, cls, generateorY) {
+  function drawChairLine(seamaphoreOffset, cls, stroke, generateorY) {
 
     svg.select('g.' + cls).remove();
     var g = svg.append('g')
@@ -845,29 +869,7 @@ $(function () {
         .attr("d", line)
         .style("fill", "none")
         .style("stroke-width", 1)
-        .style("stroke", '#000')
-        .style("stroke-opacity", 0.9);
-  }
-
-  /**
-   * 绘制绝缘图 (多了颜色变换)
-   */
-  function drawInsulationChairLine(seamaphoreOffset, generateorY) {
-    svg.select('g.insulation').remove();
-    var g = svg.append('g')
-        .attr('class', 'insulation')
-        .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
-
-    var line = d3.svg.line().x(function (d, i) {
-      return x(i);
-    }).y(generateorY).interpolate("step-after");
-
-    g.append("path")
-        .datum(dataArray)
-        .attr("d", line)
-        .style("fill", "none")
-        .style("stroke-width", 1)
-        .style("stroke", 'url(#line-gradient-insulation)')
+        .style("stroke", stroke)
         .style("stroke-opacity", 0.9);
   }
 
@@ -1382,7 +1384,21 @@ $(function () {
       y: 8
     };
 
-    selectTip.attr('transform', 'translate(' + (pointX + mouseMargin.x) + ',' + (pointY + mouseMargin.y) + ')')
+    var translateX = (pointX + mouseMargin.x), translateY = (pointY + mouseMargin.y);
+
+    if (translateX + chartTipRectWidth > size.width) {
+      translateX = pointX - chartTipRectWidth - mouseMargin.x;
+    }
+
+    if (translateY + chartTipRectHeight > size.height) {
+      translateY = size.height - chartTipRectHeight;
+    }
+
+    if (translateY < 0) {
+      translateY = 0;
+    }
+
+    selectTip.attr('transform', 'translate(' + translateX + ',' + translateY + ')')
         .style('display', null);
 
     var s = selectTip.selectAll('text').data(labelData);

@@ -54,6 +54,10 @@ text.fontawesome {
   font-family: FontAwesome;
 }
 
+rect.lamp-background {
+  fill: #68778a;
+}
+
 .axis path,
 .axis line {
   fill: none;
