@@ -14,8 +14,13 @@ $(function () {
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var xAxisMax = 1200;
 
+  // 往 dataArry 里放初次数据, 之后每隔一段时间往 dataArray 里面追加一段数据, 最多不超过 xAxisMax 条, 超过后删掉最前面的数据
+  var dataArray = []; // 初始值空
+  pushTestData();
+
+  // 初始化图表
   var chart = xhchart.signal({
-                               dataArray: generateTestData()
+                               dataArray: dataArray
                              });
 
   // 处理按钮事件
@@ -57,7 +62,7 @@ $(function () {
   });
 
   // 根据窗口高度布局一次详情表格高度, 然后绑定 resiz 事件处理
-  // 这里做了响应式, 如果是手机屏幕就不做自适应了
+  // 这里做了响应式, 如果是手机屏幕详情部分就不做滚动处理了
   if ($(window).innerWidth() > smallDevicesWidth) {
     layoutDetail(chart.size.height);
   }
@@ -65,11 +70,11 @@ $(function () {
   // 对窗口缩放做一下处理
   $(window).resize(function () {
     chart.updateSize();
-    
+
     if ($(window).innerWidth() > 767) {
       layoutDetail(chart.size.height);
     }
-    
+
   });
 
   /**
@@ -88,12 +93,11 @@ $(function () {
   }
 
   /**
-   * 生成测试用数据
+   * 测试模拟数据
    * @returns {Array}
    */
-  function generateTestData() {
+  function pushTestData() {
     var startDate = new Date().getTime() - 1000 * 60 * 60;
-    var dataArray = [];
     var voltageRandom = 0, lampRandom = 0, carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
         insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0, speedRandom = 0;
     var seamaphoreState = 'pass';
