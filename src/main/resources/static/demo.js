@@ -13,37 +13,49 @@ $(function () {
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
   var xAxisMax = 1200; // 图表中展示的数据记录条数
+  var ofsize = 14;
+  var testData = generateTestData();
 
   // 组件常量
   var gridSize = 48; // 将大图表横向划分为固定的高度单元, 然后方便分配
 
   // 组件初始化参数
-  var aspectRatio = 3; // 图表高度宽度比例 1:3
-  var chartContainerSelector = '#chart'; // 图表容器
-  var margin = {
-    top: 5,
-    right: 28,
-    bottom: 25,
-    left: 150
+  var option = {
+    aspectRatio: 3, // 图表高度宽度比例 1:3
+    chartContainerSelector: '#chart', // 图表容器
+    margin: {
+      top: 5,
+      right: 28,
+      bottom: 25,
+      left: 150
+    },
+    fontSize: ofsize,
+    fontSizeOffset: ofsize / 2,
+    labelLeftMargin: 30, // 标签左边距
+    firstDateLabelFormat: d3.time.format('%Y-%m-%d'), // 坐标轴第一个值的标签格式
+    dateLabelFormat: d3.time.format("%H:%M:%S"),      // 坐标轴日期格式
+    voltageMaxs: [4000, 2000, 1000, 400, 200, 100, 40, 20, 10],
+    carrierFrequencyMaxs: [4000, 2000, 1000, 400, 200, 100, 50],
+    lowFrequencyMaxs: [4000, 2000, 100, 40],
+    speedMaxs: [500, 300, 200, 50],
+    currentVoltageMaxIndex: 1, // 感应电压图表y轴最大值
+    currentCarrierFrequencyMaxIndex: 0, // 载频部分的图表y轴最大值
+    currentLowFrequencyMaxIndex: 3, // 低频部分的图表y轴最大值
+    currentSpeedMaxIndex: 0, // 速度图表y轴最大值
+    currentVoltageToggle: true,
+    currentCarrierFrequencyIndexToggle: true,
+    currentLowFrequencyToggle: true,
+    currentSpeedToggle: true, // 速度图表是否选中
+    dataArray: testData, // 测试数据
+    chartTipRectWidth: ofsize * 5,
+    chartTipRectHeight: ofsize * 4.2,
+    carrierFrequencyStartValues: [25, 550, 1700]
   };
-  var fontSize = 14; // 字体大小
-  var fontSizeOffset = fontSize / 2; // 字体便宜量
-  var labelLeftMargin = 30; // 标签左边距
-  var firstDateLabelFormat = d3.time.format('%Y-%m-%d'); // 坐标轴第一个值的标签格式
-  var dateLabelFormat = d3.time.format("%H:%M:%S");      // 坐标轴日期格式
-  var voltageMaxs = [4000, 2000, 1000, 400, 200, 100, 40, 20, 10];
-  var carrierFrequencyMaxs = [4000, 2000, 1000, 400, 200, 100, 50];
-  var lowFrequencyMaxs = [4000, 2000, 100, 40];
-  var currentVoltageIndex = 1, currentCarrierFrequencyIndex = 0, currentLowFrequencyIndex = 3; // 感应电压/低频/载频部分的图表y轴最大值
-  var currentVoltageToggle = true, currentCarrierFrequencyIndexToggle = true, currentLowFrequencyToggle = true;
-  var dataArray = generateTestData(); // 测试数据
-  var timeoutHandler;
-  var chartTipRectWidth = fontSize * 5, chartTipRectHeight = fontSize * 3.2;
-  var carrierFrequencyStartValues = [25, 550, 1700];
 
+  var timeoutHandler;
   // 初始化部分
   // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
-  var size = calcChartSize(chartContainerSelector);
+  var size = calcChartSize(option.chartContainerSelector);
 
   // 开始部分，准备svg画布
   var svg = d3.select('#chart').append('svg')
@@ -53,8 +65,8 @@ $(function () {
       .style('display', 'block');
 
   // svg 画布已准备妥当，开始准备图表元素
-  var height = size.height - margin.bottom - margin.top,
-      width = size.width - margin.left - margin.right;
+  var height = size.height - option.margin.bottom - option.margin.top,
+      width = size.width - option.margin.left - option.margin.right;
   var gridHeight = height / gridSize;
   var gridWidth = width / xAxisMax;
 
@@ -64,7 +76,7 @@ $(function () {
       .range([0, width]);
 
   // 计算子图表高度
-  var chartOffset = margin.top;
+  var chartOffset = option.margin.top;
   var chartHeight = gridHeight * 20;
   var lampBeltOffset = chartOffset + chartHeight + gridHeight;
   var semaphoreOffset = lampBeltOffset + gridHeight * 3;
@@ -89,17 +101,17 @@ $(function () {
   drag.on('drag', function () {
     var e = d3.mouse(d3.select('#chart').node());
 
-    var l = x.invert(e[0] - margin.left);
+    var l = x.invert(e[0] - option.margin.left);
     var index = Math.round(l);
     var pointX = adjustX(l);
-    var pointY = e[1] - margin.top;
+    var pointY = e[1] - option.margin.top;
 
-    if (pointX < margin.left) {
-      pointX = margin.left;
+    if (pointX < option.margin.left) {
+      pointX = option.margin.left;
     }
 
-    if (pointX > (size.width - margin.right)) {
-      pointX = size.width - margin.right;
+    if (pointX > (size.width - option.margin.right)) {
+      pointX = size.width - option.margin.right;
     }
 
     if (selectLine) {
@@ -108,7 +120,6 @@ $(function () {
     }
 
     if (selectTip) {
-      console.log('l: ' + l + ', index: ' + index);
       updateSelectTip(selectTip, pointX, pointY, index);
     }
   });
@@ -116,14 +127,14 @@ $(function () {
   svg.on('click', function () {
     var e = d3.mouse(d3.select('#chart').node());
     // 点在外面的不处理
-    if (e[0] < margin.left || e[0] > (size.width - margin.right)) {
+    if (e[0] < option.margin.left || e[0] > (size.width - option.margin.right)) {
       return;
     }
     // 处理数据问题
-    var l = x.invert(e[0] - margin.left);
+    var l = x.invert(e[0] - option.margin.left);
     var index = Math.round(l);
     var pointX = adjustX(l);
-    var pointY = e[1] - margin.top;
+    var pointY = e[1] - option.margin.top;
 
     if (selectLine) {
       selectLine.attr('x1', pointX)
@@ -132,9 +143,9 @@ $(function () {
     } else {
       selectLine = svg.append('line')
           .attr('x1', pointX)
-          .attr('y1', margin.top)
+          .attr('y1', option.margin.top)
           .attr('x2', pointX)
-          .attr('y2', size.height - margin.bottom)
+          .attr('y2', size.height - option.margin.bottom)
           .style('stroke', '#FB5F27')
           .style('stroke-width', '1.5')
           .style('cursor', 'ew-resize')
@@ -144,11 +155,11 @@ $(function () {
     if (!selectTip) {
       selectTip = svg.append('g')
           .attr('class', 'selectTip')
-          .attr('transform', 'translate(' + pointX + ',' + margin.top + ')');
+          .attr('transform', 'translate(' + pointX + ',' + option.margin.top + ')');
 
       selectTip.append('rect')
-          .attr("width", chartTipRectWidth)
-          .attr("height", chartTipRectHeight)
+          .attr("width", option.chartTipRectWidth)
+          .attr("height", option.chartTipRectHeight)
           .attr('x', 0)
           .attr('y', 0)
           .style("fill", '#000')
@@ -185,6 +196,14 @@ $(function () {
     updateLowFrequency(-1);
   });
 
+  $('#speedUpBtn').on('click', function () {
+    updateSpeed(1);
+  });
+
+  $('#speedDownBtn').on('click', function () {
+    updateSpeed(-1);
+  });
+
   $('#toggleLineBtn').on('click', function () {
     // 点击显示隐藏竖线
     if (selectLine) {
@@ -210,7 +229,7 @@ $(function () {
 
   // 对窗口缩放做一下处理
   $(window).resize(function () {
-    var size = calcChartSize(chartContainerSelector);
+    var size = calcChartSize(option.chartContainerSelector);
     $('#chart svg').height(size.height);
 
     if ($(window).innerWidth() > 767) {
@@ -255,7 +274,7 @@ $(function () {
     });
 
     // 绘制 x 轴
-    drawXAxis(margin.top + height);
+    drawXAxis(option.margin.top + height);
   }
 
   function addDefs() {
@@ -465,118 +484,143 @@ $(function () {
 
   function drawText() {
     var chartLabelMarginLeft = 14;
+    var chartLabelMarginTop = 6;
 
     svg.append('text')
         .attr('id', 'voltageLabelToggle')
-        .attr('class', 'fontawesome voltageLabel')
+        .attr('class', 'fontawesome voltage-label')
         .attr('x', 0)
-        .attr('y', chartOffset + fontSizeOffset)
+        .attr('y', chartOffset + option.fontSizeOffset)
         .attr('dy', '.35em')
-        .text(toggleText(currentVoltageToggle))
+        .text(toggleText(option.currentVoltageToggle))
         .on('click', function () {
-          currentVoltageToggle = !currentVoltageToggle;
+          option.currentVoltageToggle = !option.currentVoltageToggle;
           updateVoltage(0);
         });
 
     svg.append('text')
         .attr('id', 'voltageLabel')
-        .attr('class', 'voltageLabel')
+        .attr('class', 'voltage-label')
         .attr("x", chartLabelMarginLeft)
-        .attr("y", chartOffset + fontSizeOffset)
+        .attr("y", chartOffset + option.fontSizeOffset)
         .attr("dy", ".35em")
         .text(voltageText())
         .on('click', function () {
-          currentVoltageToggle = !currentVoltageToggle;
+          option.currentVoltageToggle = !option.currentVoltageToggle;
           updateVoltage(0);
         });
 
     svg.append('text')
         .attr('id', 'carrierFrequencyLabelToggle')
-        .attr('class', 'fontawesome carrierFrequencyLabel')
+        .attr('class', 'fontawesome carrier-frequency-label')
         .attr('x', 0)
-        .attr('y', chartOffset + fontSizeOffset + fontSize)
+        .attr('y', chartOffset + option.fontSizeOffset + option.fontSize + chartLabelMarginTop)
         .attr('dy', '.35em')
-        .text(toggleText(currentCarrierFrequencyIndexToggle))
+        .text(toggleText(option.currentCarrierFrequencyIndexToggle))
         .on('click', function () {
-          currentCarrierFrequencyIndexToggle = !currentCarrierFrequencyIndexToggle;
+          option.currentCarrierFrequencyIndexToggle = !option.currentCarrierFrequencyIndexToggle;
           updateCarrierFrequency(0);
         });
 
     svg.append('text')
         .attr('id', 'carrierFrequencyLabel')
-        .attr('class', 'carrierFrequencyLabel')
+        .attr('class', 'carrier-frequency-label')
         .attr("x", chartLabelMarginLeft)
-        .attr("y", chartOffset + fontSizeOffset + fontSize)
+        .attr("y", chartOffset + option.fontSizeOffset + option.fontSize + chartLabelMarginTop)
         .attr("dy", ".35em")
         .text(carrierFrequencyText())
         .on('click', function () {
-          currentCarrierFrequencyIndexToggle = !currentCarrierFrequencyIndexToggle;
+          option.currentCarrierFrequencyIndexToggle = !option.currentCarrierFrequencyIndexToggle;
           updateCarrierFrequency(0);
         });
 
     svg.append('text')
         .attr('id', 'lowFrequencyLabelToggle')
-        .attr('class', 'fontawesome lowFrequencyLabel')
+        .attr('class', 'fontawesome low-frequency-label')
         .attr('x', 0)
-        .attr('y', chartOffset + fontSizeOffset + fontSize * 2)
+        .attr('y', chartOffset + option.fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 2)
         .attr('dy', '.35em')
-        .text(toggleText(currentLowFrequencyToggle))
+        .text(toggleText(option.currentLowFrequencyToggle))
         .on('click', function () {
-          currentLowFrequencyToggle = !currentLowFrequencyToggle;
+          option.currentLowFrequencyToggle = !option.currentLowFrequencyToggle;
           updateLowFrequency(0);
         });
 
     svg.append('text')
         .attr('id', 'lowFrequencyLabel')
-        .attr('class', 'lowFrequencyLabel')
+        .attr('class', 'low-frequency-label')
         .attr("x", chartLabelMarginLeft)
-        .attr("y", chartOffset + fontSizeOffset + fontSize * 2)
+        .attr("y", chartOffset + option.fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 2)
         .attr("dy", ".35em")
         .text(lowFrequencyText())
         .on('click', function () {
-          currentLowFrequencyToggle = !currentLowFrequencyToggle;
+          option.currentLowFrequencyToggle = !option.currentLowFrequencyToggle;
           updateLowFrequency(0);
         });
 
     svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", lampBeltOffset + fontSizeOffset)
+        .attr('id', 'speedLabelToggle')
+        .attr('class', 'fontawesome speed-label')
+        .attr('x', 0)
+        .attr('y', chartOffset + option.fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 3)
+        .attr('dy', '.35em')
+        .text(toggleText(option.currentLowFrequencyToggle))
+        .on('click', function () {
+          option.currentSpeedToggle = !option.currentSpeedToggle;
+          updateSpeed(0);
+        });
+
+    svg.append('text')
+        .attr('id', 'speedLabel')
+        .attr('class', 'speed-label')
+        .attr("x", chartLabelMarginLeft)
+        .attr("y", chartOffset + option.fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 3)
+        .attr("dy", ".35em")
+        .text(speedText())
+        .on('click', function () {
+          option.currentSpeedToggle = !option.currentSpeedToggle;
+          updateSpeed(0);
+        });
+
+    svg.append('text')
+        .attr("x", option.labelLeftMargin)
+        .attr("y", lampBeltOffset + option.fontSizeOffset)
         .attr("dy", ".4em")
         .text('灯码');
 
     svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", semaphoreOffset + gridHeight + fontSizeOffset)
+        .attr("x", option.labelLeftMargin)
+        .attr("y", semaphoreOffset + gridHeight + option.fontSizeOffset)
         .attr("dy", ".35em")
         .text('信号机');
 
     svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", insulationOffset + fontSizeOffset)
+        .attr("x", option.labelLeftMargin)
+        .attr("y", insulationOffset + option.fontSizeOffset)
         .attr("dy", ".35em")
         .text('绝缘');
 
     svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", upDownOffset + fontSizeOffset)
+        .attr("x", option.labelLeftMargin)
+        .attr("y", upDownOffset + option.fontSizeOffset)
         .attr("dy", ".35em")
         .text('上/下行');
 
     svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", abOffset + fontSizeOffset)
+        .attr("x", option.labelLeftMargin)
+        .attr("y", abOffset + option.fontSizeOffset)
         .attr("dy", ".35em")
         .text('A/B机');
 
     svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", port12Offset + fontSizeOffset)
+        .attr("x", option.labelLeftMargin)
+        .attr("y", port12Offset + option.fontSizeOffset)
         .attr("dy", ".35em")
         .text('Ⅰ/Ⅱ端');
 
     svg.append('text')
-        .attr("x", labelLeftMargin)
-        .attr("y", margin.top + height + fontSizeOffset)
+        .attr("x", option.labelLeftMargin)
+        .attr("y", option.margin.top + height + option.fontSizeOffset)
         .attr("dy", ".35em")
         .text('时间里程');
   }
@@ -588,14 +632,14 @@ $(function () {
     var groupChart = svg.select('g.lineChart');
 
     var y = d3.scale.linear()
-        .domain([0, voltageMaxs[currentVoltageIndex]])
+        .domain([0, option.voltageMaxs[option.currentVoltageMaxIndex]])
         .range([chartHeight, 0]);
 
     if (groupChart.size() === 0) {
       // 添加组
-      var groupChart = svg.append('g')
+      groupChart = svg.append('g')
           .attr('class', 'lineChart')
-          .attr('transform', 'translate(' + margin.left + ',' + chartOffset + ')');
+          .attr('transform', 'translate(' + option.margin.left + ',' + chartOffset + ')');
 
       // 绘制竖方向网格
       function makeXAxis() {
@@ -625,7 +669,7 @@ $(function () {
     }
 
     // 绘制感应电压
-    if (currentVoltageToggle) {
+    if (option.currentVoltageToggle) {
       var yVoltage = y;
       var lineVoltage = d3.svg.line().x(function (d, i) {
         return x(i);
@@ -635,33 +679,33 @@ $(function () {
 
       groupChart.append("path")
           .attr('class', 'pathVoltage')
-          .datum(dataArray)
+          .datum(option.dataArray)
           .attr("d", lineVoltage)
           .style("fill", "none")
           .style("stroke-width", 1)
-          .style("stroke", '#d00')
+          .style("stroke", '#e44')
           .style("stroke-opacity", 0.9);
     }
 
     // 绘制载频
-    if (currentCarrierFrequencyIndexToggle) {
+    if (option.currentCarrierFrequencyIndexToggle) {
 
       // 计算最小值
-      var min = d3.min(dataArray, function (d) {
+      var min = d3.min(option.dataArray, function (d) {
         return d.carrierFrequency;
       });
 
-      var start = carrierFrequencyStartValues[0];
-      for (var i = 1; i < carrierFrequencyStartValues.length; i++) {
-        if (min >= carrierFrequencyStartValues[i]) {
-          start = carrierFrequencyStartValues[i];
+      var start = option.carrierFrequencyStartValues[0];
+      for (var i = 1; i < option.carrierFrequencyStartValues.length; i++) {
+        if (min >= option.carrierFrequencyStartValues[i]) {
+          start = option.carrierFrequencyStartValues[i];
         } else {
           break;
         }
       }
 
       var yCarrierFrequency = d3.scale.linear()
-          .domain([start, carrierFrequencyMaxs[currentCarrierFrequencyIndex]])
+          .domain([start, option.carrierFrequencyMaxs[option.currentCarrierFrequencyMaxIndex]])
           .range([chartHeight, 0]);
 
       var lineCarrierFrequency = d3.svg.line().x(function (d, i) {
@@ -671,7 +715,7 @@ $(function () {
       }).interpolate("step-after");
 
       groupChart.append("path")
-          .datum(dataArray)
+          .datum(option.dataArray)
           .attr("d", lineCarrierFrequency)
           .style("fill", "none")
           .style("stroke-width", 1)
@@ -680,9 +724,9 @@ $(function () {
     }
 
     // 绘制低频
-    if (currentLowFrequencyToggle) {
+    if (option.currentLowFrequencyToggle) {
       var yLowFrequency = d3.scale.linear()
-          .domain([0, lowFrequencyMaxs[currentLowFrequencyIndex]])
+          .domain([0, option.lowFrequencyMaxs[option.currentLowFrequencyMaxIndex]])
           .range([chartHeight, 0]);
 
       var lineLowFrequency = d3.svg.line().x(function (d, i) {
@@ -692,11 +736,32 @@ $(function () {
       }).interpolate("step-after");
 
       groupChart.append("path")
-          .datum(dataArray)
+          .datum(option.dataArray)
           .attr("d", lineLowFrequency)
           .style("fill", "none")
           .style("stroke-width", 1)
           .style("stroke", '#00d')
+          .style("stroke-opacity", 0.9);
+    }
+
+    // 绘制速度
+    if (option.currentSpeedToggle) {
+      var ySpeed = d3.scale.linear()
+          .domain([0, option.speedMaxs[option.currentSpeedMaxIndex]])
+          .range([chartHeight, 0]);
+
+      var lineSpeed = d3.svg.line().x(function (d, i) {
+        return x(i);
+      }).y(function (d) {
+        return ySpeed(d.speed);
+      });
+
+      groupChart.append("path")
+          .datum(option.dataArray)
+          .attr("d", lineSpeed)
+          .style("fill", "none")
+          .style("stroke-width", 1)
+          .style("stroke", '#aa0')
           .style("stroke-opacity", 0.9);
     }
   }
@@ -714,9 +779,9 @@ $(function () {
           .attr('transform', 'translate(0,' + lampBeltOffset + ')');
     }
 
-    var cx = labelLeftMargin + 40;
+    var cx = option.labelLeftMargin + 40;
     var lamp = lampGroup.selectAll('circle')
-        .data([dataArray[dataArray.length - 1]]);
+        .data([option.dataArray[option.dataArray.length - 1]]);
 
     var lampFill = function (d) {
       if (d.lamp === '' || d.lamp === 'blank') {
@@ -753,7 +818,7 @@ $(function () {
     // 黄2灯的字
     var lampTextSize = 8;
     var text = lampGroup.selectAll('text')
-        .data([dataArray[dataArray.length - 1]]);
+        .data([option.dataArray[option.dataArray.length - 1]]);
 
     text.text(function (d) {
       return d.lamp === 'U2' ? '2' : '';
@@ -779,15 +844,15 @@ $(function () {
           .attr("width", width)
           .attr("height", lampBeltHeight * 2)
           .attr('y', lampBeltOffset - lampBeltHeight / 2)
-          .attr('x', margin.left);
+          .attr('x', option.margin.left);
 
       lampBeltGroup = svg.append('g')
           .attr('class', 'lampBelt')
-          .attr('transform', 'translate(' + margin.left + ',' + lampBeltOffset + ')');
+          .attr('transform', 'translate(' + option.margin.left + ',' + lampBeltOffset + ')');
     }
 
     var prevIndex = 0;
-    var lampDatas = dataArray.reduce(
+    var lampDatas = option.dataArray.reduce(
         function (previousValue, currentValue, currentIndex, array) {
           if (currentIndex > 0) {
             var prevIndexData = array[currentIndex - 1];
@@ -858,14 +923,14 @@ $(function () {
     svg.select('g.' + cls).remove();
     var g = svg.append('g')
         .attr('class', cls)
-        .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
+        .attr('transform', 'translate(' + option.margin.left + ',' + seamaphoreOffset + ')');
 
     var line = d3.svg.line().x(function (d, i) {
       return x(i);
     }).y(generateorY).interpolate("step-after");
 
     g.append("path")
-        .datum(dataArray)
+        .datum(option.dataArray)
         .attr("d", line)
         .style("fill", "none")
         .style("stroke-width", 1)
@@ -883,9 +948,9 @@ $(function () {
     var g = svg.select('g.semaphore');
     if (g.size() == 0) {
       // 先绘制底线
-      svg.append('line').attr('x1', margin.left)
+      svg.append('line').attr('x1', option.margin.left)
           .attr('y1', seamaphoreOffset + semaphoreHeight)
-          .attr('x2', size.width - margin.right)
+          .attr('x2', size.width - option.margin.right)
           .attr('y2', seamaphoreOffset + semaphoreHeight)
           .style('stroke', '#000');
     } else {
@@ -897,10 +962,10 @@ $(function () {
     var heightUnit = semaphoreHeight / 6;
     g = svg.append('g')
         .attr('class', 'semaphore')
-        .attr('transform', 'translate(' + margin.left + ',' + seamaphoreOffset + ')');
+        .attr('transform', 'translate(' + option.margin.left + ',' + seamaphoreOffset + ')');
 
     // 过滤数据
-    var stationDatas = dataArray.reduce(
+    var stationDatas = option.dataArray.reduce(
         function (previousValue, currentValue, currentIndex, array) {
           if (currentIndex > 0) {
             var prevIndexData = array[currentIndex - 1];
@@ -1023,19 +1088,19 @@ $(function () {
         .scale(x)
         .orient("bottom")
         .tickFormat(function (d) {
-          if (d >= dataArray.length) {
+          if (d >= option.dataArray.length) {
             return '';
           }
           if (d == 0) {
-            return firstDateLabelFormat(dataArray[d].date);
+            return option.firstDateLabelFormat(option.dataArray[d].date);
           } else {
-            return dateLabelFormat(dataArray[d].date);
+            return option.dateLabelFormat(option.dataArray[d].date);
           }
         });
 
     svg.append("g")
         .attr("class", "axis")
-        .attr("transform", "translate(" + margin.left + "," + xAxisOffset + ")")
+        .attr("transform", "translate(" + option.margin.left + "," + xAxisOffset + ")")
         .call(xAxis);
   }
 
@@ -1068,7 +1133,7 @@ $(function () {
 
     return {
       width: boxWidth,
-      height: Math.floor(boxWidth / aspectRatio)
+      height: Math.floor(boxWidth / option.aspectRatio)
     }
   }
 
@@ -1080,7 +1145,7 @@ $(function () {
     var startDate = new Date().getTime() - 1000 * 60 * 60;
     var dataArray = [];
     var voltageRandom = 0, lampRandom = 0, carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
-        insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0;
+        insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0, speedRandom = 0;
     var seamaphoreState = 'pass';
     var seamaphoreRandom = Math.round(Math.random() * 6); // 每隔几个信号机来一个进站出站
     var seamaphoreNo = Math.round(Math.random() * 350 + 12300); // 随机来个开始信号机号码
@@ -1190,6 +1255,15 @@ $(function () {
         lowFrequencyRandom -= 1;
       }
 
+      var speed;
+      if (speedRandom == 0) {
+        speedRandom = Math.round(Math.random() * 3);
+        speed = Math.round(Math.random() * 80 + 200);
+      } else {
+        speed = lastData.speed;
+        speedRandom -= 1;
+      }
+
       // 信号机, 每隔 n 个 pass, 来一个 notice, in, out, 然后再重复
       if (seamaphoreStateRandom == 0) {
         if (seamaphoreState === 'pass') {
@@ -1259,6 +1333,7 @@ $(function () {
                        voltage: voltage,
                        carrierFrequency: carrierFrequency,
                        lowFrequency: lowFrequency,
+                       speed: speed,
                        stationName: stationName,
                        stationNo: stationNo,
                        seamaphoreNo: seamaphoreNo,
@@ -1291,18 +1366,18 @@ $(function () {
   }
 
   function adjustX(index) {
-    return x(index) + margin.left;
+    return x(index) + option.margin.left;
     // var minWidth = width / xAxisMax;
     // var adjust = x % minWidth;
     // return adjust > minWidth / 2 ? x + minWidth - adjust : x - adjust;
   }
 
   function updateVoltage(val) {
-    currentVoltageIndex += val;
-    if (val > 0 && currentVoltageIndex > voltageMaxs.length - 1) {
-      currentVoltageIndex = voltageMaxs.length - 1;
-    } else if (val < 0 && currentVoltageIndex < 0) {
-      currentVoltageIndex = 0;
+    option.currentVoltageMaxIndex += val;
+    if (val > 0 && option.currentVoltageMaxIndex > option.voltageMaxs.length - 1) {
+      option.currentVoltageMaxIndex = option.voltageMaxs.length - 1;
+    } else if (val < 0 && option.currentVoltageMaxIndex < 0) {
+      option.currentVoltageMaxIndex = 0;
     }
 
     drawChart(chartOffset, chartHeight);
@@ -1310,11 +1385,11 @@ $(function () {
   }
 
   function updateCarrierFrequency(val) {
-    currentCarrierFrequencyIndex += val;
-    if (val > 0 && currentCarrierFrequencyIndex > carrierFrequencyMaxs.length - 1) {
-      currentCarrierFrequencyIndex = carrierFrequencyMaxs.length - 1;
-    } else if (val < 0 && currentCarrierFrequencyIndex < 0) {
-      currentCarrierFrequencyIndex = 0;
+    option.currentCarrierFrequencyMaxIndex += val;
+    if (val > 0 && option.currentCarrierFrequencyMaxIndex > option.carrierFrequencyMaxs.length - 1) {
+      option.currentCarrierFrequencyMaxIndex = option.carrierFrequencyMaxs.length - 1;
+    } else if (val < 0 && option.currentCarrierFrequencyMaxIndex < 0) {
+      option.currentCarrierFrequencyMaxIndex = 0;
     }
 
     drawChart(chartOffset, chartHeight);
@@ -1322,42 +1397,63 @@ $(function () {
   }
 
   function updateLowFrequency(val) {
-    currentLowFrequencyIndex += val;
-    if (val > 0 && currentLowFrequencyIndex > lowFrequencyMaxs.length - 1) {
-      currentLowFrequencyIndex = lowFrequencyMaxs.length - 1;
-    } else if (val < 0 && currentLowFrequencyIndex < 0) {
-      currentLowFrequencyIndex = 0;
+    option.currentLowFrequencyMaxIndex += val;
+    if (val > 0 && option.currentLowFrequencyMaxIndex > option.lowFrequencyMaxs.length - 1) {
+      option.currentLowFrequencyMaxIndex = option.lowFrequencyMaxs.length - 1;
+    } else if (val < 0 && option.currentLowFrequencyMaxIndex < 0) {
+      option.currentLowFrequencyMaxIndex = 0;
     }
 
     drawChart(chartOffset, chartHeight);
     updateLowFrequencyLabel();
   }
 
+  function updateSpeed(val) {
+    option.currentSpeedMaxIndex += val;
+    if (val > 0 && option.currentSpeedMaxIndex > option.speedMaxs.length - 1) {
+      option.currentSpeedMaxIndex = option.speedMaxs.length - 1;
+    } else if (val < 0 && option.currentSpeedMaxIndex < 0) {
+      option.currentSpeedMaxIndex = 0;
+    }
+
+    drawChart(chartOffset, chartHeight);
+    updateSpeedLabel();
+  }
+
   function updateVoltageLabel() {
     d3.select('#voltageLabel').text(voltageText());
-    d3.select('#voltageLabelToggle').text(toggleText(currentVoltageToggle))
+    d3.select('#voltageLabelToggle').text(toggleText(option.currentVoltageToggle))
   }
 
   function updateCarrierFrequencyLabel() {
     d3.select('#carrierFrequencyLabel').text(carrierFrequencyText());
-    d3.select('#carrierFrequencyLabelToggle').text(toggleText(currentCarrierFrequencyIndexToggle));
+    d3.select('#carrierFrequencyLabelToggle').text(toggleText(option.currentCarrierFrequencyIndexToggle));
   }
 
   function updateLowFrequencyLabel() {
     d3.select('#lowFrequencyLabel').text(lowFrequencyText());
-    d3.select('#lowFrequencyLabelToggle').text(toggleText(currentLowFrequencyToggle));
+    d3.select('#lowFrequencyLabelToggle').text(toggleText(option.currentLowFrequencyToggle));
+  }
+
+  function updateSpeedLabel() {
+    d3.select('#speedLabel').text(speedText());
+    d3.select('#speedLabelToggle').text(toggleText(option.currentSpeedToggle));
   }
 
   function voltageText() {
-    return '感应电压 ' + voltageMaxs[currentVoltageIndex] + 'mV';
+    return '感应电压 ' + option.voltageMaxs[option.currentVoltageMaxIndex] + 'mV';
   }
 
   function carrierFrequencyText() {
-    return '中心频 ' + carrierFrequencyMaxs[currentCarrierFrequencyIndex] + 'Hz';
+    return '中心频 ' + option.carrierFrequencyMaxs[option.currentCarrierFrequencyMaxIndex] + 'Hz';
   }
 
   function lowFrequencyText() {
-    return '低频 ' + lowFrequencyMaxs[currentLowFrequencyIndex] + '(Hz/ms)';
+    return '低频 ' + option.lowFrequencyMaxs[option.currentLowFrequencyMaxIndex] + '(Hz/ms)';
+  }
+
+  function speedText() {
+    return '速度 ' + option.speedMaxs[option.currentSpeedMaxIndex] + '(km/h)';
   }
 
   function toggleText(toggle) {
@@ -1365,14 +1461,15 @@ $(function () {
   }
 
   function chartSelectTip(i) {
-    if (i < 0 || i > dataArray.length - 1) {
+    if (i < 0 || i > option.dataArray.length - 1) {
       return [];
     }
 
     return [
-      dataArray[i].voltage + 'mV',
-      dataArray[i].carrierFrequency + 'Hz',
-      dataArray[i].lowFrequency + '(Hz/ms)'
+      option.dataArray[i].voltage + 'mV',
+      option.dataArray[i].carrierFrequency + 'Hz',
+      option.dataArray[i].lowFrequency + '(Hz/ms)',
+      option.dataArray[i].speed + '(km/h)'
     ];
   }
 
@@ -1386,12 +1483,12 @@ $(function () {
 
     var translateX = (pointX + mouseMargin.x), translateY = (pointY + mouseMargin.y);
 
-    if (translateX + chartTipRectWidth > size.width) {
-      translateX = pointX - chartTipRectWidth - mouseMargin.x;
+    if (translateX + option.chartTipRectWidth > size.width) {
+      translateX = pointX - option.chartTipRectWidth - mouseMargin.x;
     }
 
-    if (translateY + chartTipRectHeight > size.height) {
-      translateY = size.height - chartTipRectHeight;
+    if (translateY + option.chartTipRectHeight > size.height) {
+      translateY = size.height - option.chartTipRectHeight;
     }
 
     if (translateY < 0) {
@@ -1411,7 +1508,7 @@ $(function () {
     s.enter().append('text')
         .attr('x', 0)
         .attr('y', function (d, i) {
-          return i * fontSize;
+          return i * option.fontSize;
         })
         .attr('dy', '1em')
         .text(function (d) {
@@ -1428,12 +1525,12 @@ $(function () {
           } else if (i === 2) {
             return 'blue';
           } else {
-            return 'black';
+            return '#550';
           }
         });
 
     var bg = selectTip.select('rect');
-    if (index < 0 || index > dataArray.length - 1) {
+    if (index < 0 || index > option.dataArray.length - 1) {
       bg.style('display', 'none');
     } else {
       bg.style('display', null);
