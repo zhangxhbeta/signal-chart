@@ -13,7 +13,7 @@ $(function () {
   // 非组件部分
   var minDetailHeight = 30; // 详情区域最小高度 30px
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
-  var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大小
+  var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大屏
   var xAxisMax = 1200;
   var dataFormat = d3.time.format('%Y-%m-%d %H:%M:%S'); // 日期格式
 
