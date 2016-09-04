@@ -1,6 +1,17 @@
 /**
  * 全局命名空间 xhchart, 目前里面有一个模块 signal, 用于机车图
  *
+ * 机车图 api 说明
+ *
+ * signal.update(newDataArray)         更新图表的数据源, 用于数据有变化以后更新图表显示, newDataArray 可选参数, 提供新的数据数组
+ * signal.updateVoltage(val)           用于加减感应电压范围, val 取值正数那么是往上加范围, 取值负数往下减范围
+ * signal.updateCarrierFrequency(val)  同上, 用于加减范围
+ * signal.updateLowFrequency(val)      同上, 用于加减范围
+ * signal.updateSpeed(val)             同上, 用于加减范围
+ * signal.toggleSelectLine()           隐藏/显示选中时的竖线
+ * signal.updateSize()                 窗口有变化时更新图表大小
+ * signal.size                         获取当前图表大小
+ *
  * @author zhangxh
  * @type {{signal}}
  */
@@ -172,7 +183,12 @@
 
     });
 
-    function update() {
+    function update(newDataArray) {
+      
+      if (newDataArray !== undefined) {
+        option.dataArray = newDataArray;
+      }
+      
       // 绘制图表, 感应电压/载频/低频,速度
       drawChart(chartOffset, chartHeight);
 

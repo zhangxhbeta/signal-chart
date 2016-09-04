@@ -7,10 +7,6 @@
  */
 $(function () {
 
-  // demo 部分
-  d3.select('#version').html('机车图实时演示 (随机模拟数据)');
-
-  // 非组件部分
   var minDetailHeight = 30; // 详情区域最小高度 30px
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1
   var smallDevicesWidth = 767; // 小屏幕宽度, 超出认定为其他大屏
@@ -185,7 +181,7 @@ $(function () {
       seamaphoreNo += Math.round(Math.random() * 10);
     }
 
-    function pushNewData() {
+    function generateNewData() {
       var lastData = dataArray[dataArray.length - 1];
 
       if (lampRandom == 0) {
@@ -299,49 +295,50 @@ $(function () {
         port12Random -= 1;
       }
 
-      dataArray.push({
-                       // 灯状态
-                       // 'L'     绿灯
-                       // 'U'     黄灯
-                       // 'UU'    双黄灯
-                       // 'HU'    红黄灯
-                       // 'LU'    绿黄灯
-                       // 'U2'    黄2灯
-                       // 'H'     红灯
-                       // 'B'     白灯
-                       // ''      空白无码
-                       lamp: lamp,
-                       voltage: voltage,                   // 感应电压
-                       carrierFrequency: carrierFrequency, // 中心频/载频
-                       lowFrequency: lowFrequency,         // 低频
-                       speed: speed,                       // 速度
-                       stationName: stationName,           // 车站名
-                       stationNo: stationNo,               // 车站号
-                       seamaphoreNo: seamaphoreNo,         // 信号机号
-                       seamaphoreState: seamaphoreState,   // 信号机状态, 通过 'pass', 预告 'notice', 进站
-                                                           // 'in', 出站 'out'
-                       upDown: upDown,                     // 上行/下行标志, 上行 'S', 下行 'X'
-                       insulation: insulation,             // 绝缘, 0 和 1 2种状态
-                       ab: ab,                             // ab机, 0 和 1 2种状态
-                       port12: port12,                     // Ⅰ/Ⅱ端, 0 和 1 2种状态,
-                       date: lastData ? new Date(lastData.date.getTime() + 1000) // 当前时间
-                           : new Date(startDate)
-                     });
+      return {
+        // 灯状态
+        // 'L'     绿灯
+        // 'U'     黄灯
+        // 'UU'    双黄灯
+        // 'HU'    红黄灯
+        // 'LU'    绿黄灯
+        // 'U2'    黄2灯
+        // 'H'     红灯
+        // 'B'     白灯
+        // ''      空白无码
+        lamp: lamp,
+        voltage: voltage,                   // 感应电压
+        carrierFrequency: carrierFrequency, // 中心频/载频
+        lowFrequency: lowFrequency,         // 低频
+        speed: speed,                       // 速度
+        stationName: stationName,           // 车站名
+        stationNo: stationNo,               // 车站号
+        seamaphoreNo: seamaphoreNo,         // 信号机号
+        seamaphoreState: seamaphoreState,   // 信号机状态, 通过 'pass', 预告 'notice', 进站
+                                            // 'in', 出站 'out'
+        upDown: upDown,                     // 上行/下行标志, 上行 'S', 下行 'X'
+        insulation: insulation,             // 绝缘, 0 和 1 2种状态
+        ab: ab,                             // ab机, 0 和 1 2种状态
+        port12: port12,                     // Ⅰ/Ⅱ端, 0 和 1 2种状态,
+        date: lastData ? new Date(lastData.date.getTime() + 1000) // 当前时间
+            : new Date(startDate)
+      };
     }
 
     for (var i = 0; i < 200; i++) {
-      pushNewData();
+      dataArray.push(generateNewData());
     }
 
     // 然后定期生产数据进入 dataArray
     setInterval(function () {
       for (var i = 0; i < 20; i++) {
-        pushNewData();
+        dataArray.push(generateNewData());
       }
       if (dataArray.length > xAxisMax + 1) {
         dataArray.splice(0, dataArray.length - xAxisMax - 1);
       }
-      chart.update(); // 重新绘制图表
+      
+      chart.update(dataArray); // 重新绘制图表
     }, 2000);
 
     return dataArray;

@@ -48,23 +48,22 @@
                 class="fa fa-pencil"></i></button>
       </div>
       <div class="btn-group">
-        <button type="button" class="btn btn-default btn-sm" disabled="disabled"><i
+        <button id="moveToStartBtn" type="button" class="btn btn-default btn-sm"><i
                 class="fa fa-step-backward"></i>
         </button>
-        <button type="button" class="btn btn-default btn-sm" disabled="disabled"><i
+        <button id="movePrevBtn" type="button" class="btn btn-default btn-sm"><i
                 class="fa fa-backward"></i></button>
-        <button type="button" class="btn btn-default btn-sm" disabled="disabled"><i
+        <button id="moveNextBtn" type="button" class="btn btn-default btn-sm"><i
                 class="fa fa-forward"></i></button>
       </div>
 
       <div class="btn-group">
-        <a class="btn btn-primary" href="index.html">实时</a>
-        <a class="btn btn-default" href="history.html">历史</a>
+        <a class="btn btn-default" href="index.html">实时</a>
+        <a class="btn btn-primary" href="history.html">历史</a>
       </div>
-
     </div>
     <small class="pull-right">
-      <span>机车图实时演示 (随机模拟数据)</span>
+      <span>机车图历史查看演示 (模拟数据)</span>
     </small>
   </div>
 
@@ -241,7 +240,7 @@
 <!--图表组件-->
 <script src="xhchart.js"></script>
 <!--demo-->
-<script src="demo-realtime.js"></script>
+<script src="demo-history.js"></script>
 </body>
 
 </html>
