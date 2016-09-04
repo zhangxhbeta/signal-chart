@@ -25,38 +25,43 @@ var xhchart = (function () {
    */
   xhchart.signal = function (initOption) {
 
+    // 防止别人不传参
+    if (initOption === undefined) {
+      initOption = {};
+    }
+
     // 组件常量
     var gridSize = 48; // 将大图表横向划分为固定的高度单元, 然后方便分配
 
     // 组件初始化参数
     var option = {
       xAxisMax: initOption.xAxisMax || 1200,
-      aspectRatio: 3, // 图表高度宽度比例 1:3
-      chartContainerSelector: '#chart', // 图表容器
-      margin: {
+      aspectRatio: initOption.aspectRatio || 3, // 图表高度宽度比例 1:3
+      chartContainerSelector: initOption.chartContainerSelector || '#chart', // 图表容器
+      margin: initOption.margin || {
         top: 5,
         right: 28,
         bottom: 25,
         left: 150
       },
-      fontSize: 14,
-      labelLeftMargin: 30, // 标签左边距
-      firstDateLabelFormat: d3.time.format('%Y-%m-%d'), // 坐标轴第一个值的标签格式
-      dateLabelFormat: d3.time.format("%H:%M:%S"),      // 坐标轴日期格式
-      voltageMaxs: [4000, 2000, 1000, 400, 200, 100, 40, 20, 10],
-      carrierFrequencyMaxs: [4000, 2000, 1000, 400, 200, 100, 50],
-      lowFrequencyMaxs: [4000, 2000, 100, 40],
-      speedMaxs: [500, 300, 200, 50],
-      currentVoltageMaxIndex: 1, // 感应电压图表y轴最大值
-      currentCarrierFrequencyMaxIndex: 0, // 载频部分的图表y轴最大值
-      currentLowFrequencyMaxIndex: 3, // 低频部分的图表y轴最大值
-      currentSpeedMaxIndex: 0, // 速度图表y轴最大值
-      currentVoltageToggle: true,
-      currentCarrierFrequencyIndexToggle: true,
-      currentLowFrequencyToggle: true,
-      currentSpeedToggle: true, // 速度图表是否选中
+      fontSize: initOption.fontSize || 14,
+      labelLeftMargin: initOption.labelLeftMargin || 30, // 标签左边距
+      firstDateLabelFormat: initOption.firstDateLabelFormat || d3.time.format('%Y-%m-%d'), // 坐标轴第一个值的标签格式
+      dateLabelFormat: initOption.dateLabelFormat || d3.time.format("%H:%M:%S"),      // 坐标轴日期格式
+      voltageMaxs: initOption.voltageMaxs || [4000, 2000, 1000, 400, 200, 100, 40, 20, 10],
+      carrierFrequencyMaxs: initOption.carrierFrequencyMaxs || [4000, 2000, 1000, 400, 200, 100, 50],
+      lowFrequencyMaxs: initOption.lowFrequencyMaxs || [4000, 2000, 100, 40],
+      speedMaxs: initOption.speedMaxs || [500, 300, 200, 50],
+      currentVoltageMaxIndex: initOption.currentVoltageMaxIndex || 1, // 感应电压图表y轴最大值
+      currentCarrierFrequencyMaxIndex: initOption.currentCarrierFrequencyMaxIndex || 0, // 载频部分的图表y轴最大值
+      currentLowFrequencyMaxIndex: initOption.currentLowFrequencyMaxIndex || 3, // 低频部分的图表y轴最大值
+      currentSpeedMaxIndex: initOption.currentSpeedMaxIndex || 0, // 速度图表y轴最大值
+      currentVoltageToggle: initOption.currentVoltageToggle || true,
+      currentCarrierFrequencyIndexToggle: initOption.currentCarrierFrequencyIndexToggle || true,
+      currentLowFrequencyToggle: initOption.currentLowFrequencyToggle || true,
+      currentSpeedToggle: initOption.currentSpeedToggle || true, // 速度图表是否选中
       dataArray: initOption.dataArray || [], // 测试数据
-      carrierFrequencyStartValues: [25, 550, 1700],
+      carrierFrequencyStartValues: initOption.carrierFrequencyStartValues || [25, 550, 1700],
       onSelectLine: initOption.onSelectLine
     };
 
