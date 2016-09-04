@@ -16,6 +16,66 @@ $(function () {
   var xAxisMax = 1200;
   var dataFormat = d3.time.format('%Y-%m-%d %H:%M:%S'); // 日期格式
 
+  // 模拟数据部分
+  var startDate = new Date().getTime() - 1000 * 60 * 60;
+  var voltageRandom = 0, lampRandom = 0, carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
+      insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0, speedRandom = 0;
+  var seamaphoreState = 'pass';
+  var seamaphoreRandom = Math.round(Math.random() * 6); // 每隔几个信号机来一个进站出站
+  var seamaphoreNo = Math.round(Math.random() * 350 + 12300); // 随机来个开始信号机号码
+  var stationNames = [
+    '温州',
+    '青田',
+    '丽水',
+    '缙云',
+    '永康',
+    '武义',
+    '金华',
+    '义乌',
+    '诸暨',
+    '杭州',
+    '德清西',
+    '长兴南',
+    '宣城',
+    '芜湖',
+    '巢湖',
+    '合肥',
+    '淮南',
+    '阜阳',
+    '亳州',
+    '商丘南',
+    '定陶',
+    '菏泽',
+    '梁山',
+    '阳谷',
+    '聊城',
+    '临清',
+    '清河城',
+    '枣强',
+    '衡水',
+    '辛集',
+    '石家庄北',
+    '太原'
+  ];
+  var startStationNameIndex = Math.round(Math.random() * stationNames.length); // 开始站名
+  var seamaphoreStateRandom = 0;
+  var stationName = stationNames[startStationNameIndex];
+  var stationNo = Math.round(Math.random() * 300 + 200);
+  var lamp = 'L';
+  var lampStates = [
+    'L',    // 绿灯
+    'U',    // 黄灯
+    'UU',   // 双黄灯
+    'HU',   // 红黄灯
+    'LU',   // 绿黄灯
+    'U2',   // 黄2灯
+    'H',    // 红灯
+    'B',    // 白灯
+    ''     // 空白无码
+  ];
+  var startLampIndex = Math.round(Math.random() * lampStates.length); // 初始灯颜色
+  var lastData;
+
   // 往 dataArry 里放初次数据, 之后每隔一段时间往 dataArray 里面追加一段数据, 最多不超过 xAxisMax 条, 超过后删掉最前面的数据
   var dataArray = []; // 初始值空
   getTestData();
@@ -123,66 +183,6 @@ $(function () {
 
     $('#detail').outerHeight(availableHeight);
   }
-
-  // 模拟数据部分
-  var startDate = new Date().getTime() - 1000 * 60 * 60;
-  var voltageRandom = 0, lampRandom = 0, carrierFrequencyRandom = 0, lowFrequencyRandom = 0,
-      insulationRandom = 0, upDownRandom = 0, abRandom = 0, port12Random = 0, speedRandom = 0;
-  var seamaphoreState = 'pass';
-  var seamaphoreRandom = Math.round(Math.random() * 6); // 每隔几个信号机来一个进站出站
-  var seamaphoreNo = Math.round(Math.random() * 350 + 12300); // 随机来个开始信号机号码
-  var stationNames = [
-    '温州',
-    '青田',
-    '丽水',
-    '缙云',
-    '永康',
-    '武义',
-    '金华',
-    '义乌',
-    '诸暨',
-    '杭州',
-    '德清西',
-    '长兴南',
-    '宣城',
-    '芜湖',
-    '巢湖',
-    '合肥',
-    '淮南',
-    '阜阳',
-    '亳州',
-    '商丘南',
-    '定陶',
-    '菏泽',
-    '梁山',
-    '阳谷',
-    '聊城',
-    '临清',
-    '清河城',
-    '枣强',
-    '衡水',
-    '辛集',
-    '石家庄北',
-    '太原'
-  ];
-  var startStationNameIndex = Math.round(Math.random() * stationNames.length); // 开始站名
-  var seamaphoreStateRandom = 0;
-  var stationName = stationNames[startStationNameIndex];
-  var stationNo = Math.round(Math.random() * 300 + 200);
-  var lamp = 'L';
-  var lampStates = [
-    'L',    // 绿灯
-    'U',    // 黄灯
-    'UU',   // 双黄灯
-    'HU',   // 红黄灯
-    'LU',   // 绿黄灯
-    'U2',   // 黄2灯
-    'H',    // 红灯
-    'B',    // 白灯
-    ''     // 空白无码
-  ];
-  var startLampIndex = Math.round(Math.random() * lampStates.length); // 初始灯颜色
-  var lastData;
 
   /**
    * 测试模拟数据
