@@ -9,6 +9,7 @@
  * @author zhangxh
  */
 $(function () {
+  'use strict';
 
   var minDetailHeight = 30; // 详情区域最小高度 30px
   var ieFix = 1;  // ie 滚动条出现, 所以高度要减去1

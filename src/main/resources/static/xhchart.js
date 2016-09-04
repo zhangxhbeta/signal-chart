@@ -15,7 +15,9 @@
  * @author zhangxh
  * @type {{signal}}
  */
-(function () {
+var xhchart = (function () {
+  'use strict';
+  
   var xhchart = {};
 
   /**
@@ -580,6 +582,23 @@
      * 绘制图表的部分
      */
     function drawChart(chartOffset, chartHeight) {
+      
+      // 绘制竖方向网格
+      function makeXAxis() {
+        return d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .ticks(10);
+      }
+
+      // 绘制水平方向网格
+      function makeYAxis() {
+        return d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .ticks(5);
+      }
+      
       var groupChart = svg.select('g.lineChart');
 
       var y = d3.scale.linear()
@@ -592,25 +611,9 @@
             .attr('class', 'lineChart')
             .attr('transform', 'translate(' + option.margin.left + ',' + chartOffset + ')');
 
-        // 绘制竖方向网格
-        function makeXAxis() {
-          return d3.svg.axis()
-              .scale(x)
-              .orient("bottom")
-              .ticks(10);
-        }
-
         groupChart.append("g")
             .attr("class", "grid")
             .call(makeXAxis().tickSize(chartHeight, 0, 0).tickFormat(''));
-
-        // 绘制水平方向网格
-        function makeYAxis() {
-          return d3.svg.axis()
-              .scale(y)
-              .orient("left")
-              .ticks(5);
-        }
 
         groupChart.append("g")
             .attr("class", "grid")
@@ -1306,5 +1309,5 @@
     };
   };
 
-  this.xhchart = xhchart;
+  return xhchart;
 }());
