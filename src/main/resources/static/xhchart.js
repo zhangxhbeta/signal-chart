@@ -290,10 +290,10 @@ var xhchart = (function () {
           .selectAll("stop")
           .data([
                   {offset: "0%", color: "#FE2"},
-                  {offset: "45%", color: "#FE2"},
-                  {offset: "46%", color: "black"},
-                  {offset: "54%", color: "black"},
-                  {offset: "55%", color: "#FE2"},
+                  {offset: "47%", color: "#FE2"},
+                  {offset: "47%", color: "black"},
+                  {offset: "53%", color: "black"},
+                  {offset: "53%", color: "#FE2"},
                   {offset: "100%", color: "#FE2"}
                 ])
           .enter()
@@ -313,10 +313,10 @@ var xhchart = (function () {
           .selectAll("stop")
           .data([
                   {offset: "0%", color: "red"},
-                  {offset: "45%", color: "red"},
-                  {offset: "46%", color: "black"},
-                  {offset: "54%", color: "black"},
-                  {offset: "55%", color: "#FE2"},
+                  {offset: "47%", color: "red"},
+                  {offset: "47%", color: "black"},
+                  {offset: "53%", color: "black"},
+                  {offset: "53%", color: "#FE2"},
                   {offset: "100%", color: "#FE2"}
                 ])
           .enter()
@@ -335,11 +335,11 @@ var xhchart = (function () {
           .attr("x2", '0%').attr("y2", '100%')
           .selectAll("stop")
           .data([
-                  {offset: "0%", color: "green"},
-                  {offset: "45%", color: "green"},
-                  {offset: "46%", color: "black"},
-                  {offset: "54%", color: "black"},
-                  {offset: "55%", color: "#FE2"},
+                  {offset: "0%", color: "#02c202"},
+                  {offset: "47%", color: "#02c202"},
+                  {offset: "47%", color: "black"},
+                  {offset: "53%", color: "black"},
+                  {offset: "53%", color: "#FE2"},
                   {offset: "100%", color: "#FE2"}
                 ])
           .enter()
@@ -402,8 +402,8 @@ var xhchart = (function () {
           .attr("x2", '0%').attr("y2", '100%')
           .selectAll("stop")
           .data([
-                  {offset: "0%", color: "green"},
-                  {offset: "50%", color: "green"},
+                  {offset: "0%", color: "#02c202"},
+                  {offset: "50%", color: "#02c202"},
                   {offset: "50%", color: "yellow"},
                   {offset: "100%", color: "yellow"}
                 ])
@@ -732,7 +732,7 @@ var xhchart = (function () {
         if (d.lamp === '' || d.lamp === 'blank') {
           return 'black';
         } else if (d.lamp === 'L') {
-          return 'green';
+          return '#02c202';
         } else if (d.lamp === 'U' || d.lamp === 'U2') {
           return '#FE2';
         } else if (d.lamp === 'H') {
@@ -829,7 +829,7 @@ var xhchart = (function () {
         if (d.lamp === '' || d.lamp === 'blank') {
           return 'black';
         } else if (d.lamp === 'L') {
-          return 'green';
+          return '#02c202';
         } else if (d.lamp === 'U') {
           return 'yellow';
         } else if (d.lamp === 'H') {
