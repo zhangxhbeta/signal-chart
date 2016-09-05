@@ -162,28 +162,25 @@ var xhchart = (function () {
             .style('display', null);
       } else {
         selectLine = svg.append('line')
+            .attr('class', 'select-line')
             .attr('x1', pointX)
             .attr('y1', option.margin.top)
             .attr('x2', pointX)
             .attr('y2', size.height - option.margin.bottom)
-            .style('stroke', '#FB5F27')
-            .style('stroke-width', '1.5')
-            .style('cursor', 'ew-resize')
             .call(drag);
       }
 
       if (!selectTip) {
         selectTip = svg.append('g')
-            .attr('class', 'selectTip')
+            .attr('class', 'select-tip')
             .attr('transform', 'translate(' + pointX + ',' + option.margin.top + ')');
 
         selectTip.append('rect')
+            .attr('class', 'chart-tip')
             .attr("width", chartTipRectWidth)
             .attr("height", chartTipRectHeight)
             .attr('x', 0)
-            .attr('y', 0)
-            .style("fill", '#000')
-            .style('fill-opacity', '0.2');
+            .attr('y', 0);
       }
 
       // 更新提示
@@ -213,22 +210,22 @@ var xhchart = (function () {
           .range([gridHeight * 2, 0]);
 
       // 绘制绝缘
-      drawChairLine(insulationOffset, 'insulation', 'url(#line-gradient-insulation)', function (d) {
+      drawChairLine(insulationOffset, 'insulation', function (d) {
         return y(d.insulation || 0);
       });
 
       // 绘制上/下行
-      drawChairLine(upDownOffset, 'updown', '#ec8100', function (d) {
+      drawChairLine(upDownOffset, 'updown', function (d) {
         return y(d.upDown === 'X' ? 1 : 0);
       });
 
       // 绘制A/B机
-      drawChairLine(abOffset, 'ab', '#009a00', function (d) {
+      drawChairLine(abOffset, 'ab', function (d) {
         return y(d.ab || 0);
       });
 
       // 绘制 1/2 端
-      drawChairLine(port12Offset, 'port12', '#0000a2', function (d) {
+      drawChairLine(port12Offset, 'port12', function (d) {
         return y(d.port12 || 0);
       });
 
@@ -638,13 +635,9 @@ var xhchart = (function () {
         });
 
         groupChart.append("path")
-            .attr('class', 'pathVoltage')
+            .attr('class', 'path-voltage')
             .datum(option.dataArray)
-            .attr("d", lineVoltage)
-            .style("fill", "none")
-            .style("stroke-width", 1)
-            .style("stroke", '#e44')
-            .style("stroke-opacity", 0.9);
+            .attr("d", lineVoltage);
       }
 
       // 绘制载频
@@ -676,11 +669,8 @@ var xhchart = (function () {
 
         groupChart.append("path")
             .datum(option.dataArray)
-            .attr("d", lineCarrierFrequency)
-            .style("fill", "none")
-            .style("stroke-width", 1)
-            .style("stroke", '#0d0')
-            .style("stroke-opacity", 0.9);
+            .attr('class', 'line-carrier-frequency')
+            .attr("d", lineCarrierFrequency);
       }
 
       // 绘制低频
@@ -697,11 +687,8 @@ var xhchart = (function () {
 
         groupChart.append("path")
             .datum(option.dataArray)
-            .attr("d", lineLowFrequency)
-            .style("fill", "none")
-            .style("stroke-width", 1)
-            .style("stroke", '#00d')
-            .style("stroke-opacity", 0.9);
+            .attr('class', 'line-low-frequency')
+            .attr("d", lineLowFrequency);
       }
 
       // 绘制速度
@@ -719,10 +706,7 @@ var xhchart = (function () {
         groupChart.append("path")
             .datum(option.dataArray)
             .attr("d", lineSpeed)
-            .style("fill", "none")
-            .style("stroke-width", 1)
-            .style("stroke", '#aa0')
-            .style("stroke-opacity", 0.9);
+            .attr('class', 'line-speed');
       }
     }
 
@@ -941,7 +925,7 @@ var xhchart = (function () {
     /**
      * 绘制阶梯图
      */
-    function drawChairLine(seamaphoreOffset, cls, stroke, generateorY) {
+    function drawChairLine(seamaphoreOffset, cls, generateorY) {
 
       svg.select('g.' + cls).remove();
       var g = svg.append('g')
@@ -954,11 +938,8 @@ var xhchart = (function () {
 
       g.append("path")
           .datum(option.dataArray)
-          .attr("d", line)
-          .style("fill", "none")
-          .style("stroke-width", 1)
-          .style("stroke", stroke)
-          .style("stroke-opacity", 0.9);
+          .attr('class', 'chair-line')
+          .attr("d", line);
     }
 
     /**
@@ -971,11 +952,12 @@ var xhchart = (function () {
       var g = svg.select('g.semaphore');
       if (g.size() == 0) {
         // 先绘制底线
-        svg.append('line').attr('x1', option.margin.left)
+        svg.append('line')
+            .attr('class', 'semaphore-under-line')
+            .attr('x1', option.margin.left)
             .attr('y1', seamaphoreOffset + semaphoreHeight)
             .attr('x2', size.width - option.margin.right)
-            .attr('y2', seamaphoreOffset + semaphoreHeight)
-            .style('stroke', '#000');
+            .attr('y2', seamaphoreOffset + semaphoreHeight);
       } else {
         // 删掉原来绘制的
         g.remove();
@@ -1054,17 +1036,13 @@ var xhchart = (function () {
             }
 
             return path.join(" ");
-          })
-          .style("fill", "none")
-          .style("stroke-width", 1)
-          .style("stroke", '#000')
-          .style("stroke-opacity", 0.9);
+          });
 
       grid.append('text')
+          .attr('class', 'label-1')
           .attr("x", heightUnit)
           .attr("y", heightUnit)
           .attr("dy", ".25em")
-          .style('font-size', '8pt')
           .text(function (d) {
             if (d.value.seamaphoreState === 'in') {
               return d.value.stationNo;
@@ -1074,10 +1052,10 @@ var xhchart = (function () {
           });
 
       grid.append('text')
+          .attr('class', 'label-2')
           .attr("x", heightUnit)
           .attr("y", heightUnit * 3)
           .attr("dy", ".25em")
-          .style('font-size', '9pt')
           .text(function (d) {
             var data = d.value;
             if (data.seamaphoreState === 'in') {
@@ -1093,10 +1071,10 @@ var xhchart = (function () {
           });
 
       grid.append('text')
+          .attr('class', 'label-3')
           .attr("x", 2)
           .attr("y", heightUnit * 5)
           .attr("dy", ".4em")
-          .style('font-size', '8pt')
           .text(function (d) {
             return (d.value.upDown || '') + ' ' + (d.value.seamaphoreNo || '');
           });
@@ -1351,6 +1329,18 @@ var xhchart = (function () {
       s.exit().remove();
 
       s.enter().append('text')
+          .attr('class', function (d, i) {
+
+            if (i === 0) {
+              return 'voltage-label-tip';
+            } else if (i === 1) {
+              return 'carrier-frequency-label-tip';
+            } else if (i === 2) {
+              return 'low-frequency-label-tip';
+            } else {
+              return 'speed-label-tip';
+            }
+          })
           .attr('x', 0)
           .attr('y', function (d, i) {
             return i * option.fontSize;
@@ -1358,20 +1348,6 @@ var xhchart = (function () {
           .attr('dy', '1em')
           .text(function (d) {
             return d;
-          })
-          .style('font-weight', 'bold')
-          .style('fill-opacity', '0.7')
-          .style('fill', function (d, i) {
-
-            if (i === 0) {
-              return 'red';
-            } else if (i === 1) {
-              return 'green';
-            } else if (i === 2) {
-              return 'blue';
-            } else {
-              return '#550';
-            }
           });
 
       var bg = selectTip.select('rect');

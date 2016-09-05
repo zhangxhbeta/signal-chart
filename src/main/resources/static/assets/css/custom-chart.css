@@ -35,6 +35,14 @@
 }
 
 /*图表样式*/
+.grid .tick {
+  stroke: lightgrey;
+  opacity: 0.7;
+}
+.grid path {
+  stroke-width: 0;
+}
+
 text.voltage-label {
   fill: red;
   cursor: pointer;
@@ -88,14 +96,99 @@ path.event:hover {
   shape-rendering: crispEdges;
 }
 
-.area {
-  fill: steelblue;
+line.select-line {
+  stroke: #FB5F27;
+  stroke-width: 1.5;
+  cursor: ew-resize;
 }
 
-.grid .tick {
-  stroke: lightgrey;
-  opacity: 0.7;
+rect.chart-tip {
+  fill: #000;
+  fill-opacity: 0.2;
 }
-.grid path {
-  stroke-width: 0;
+
+path.path-voltage {
+  fill: none;
+  stroke-width: 1;
+  stroke: #e44;
+  stroke-opacity: 0.9;
+}
+
+path.line-carrier-frequency {
+  fill: none;
+  stroke-width: 1;
+  stroke: #0d0;
+  stroke-opacity: 0.9;
+}
+
+path.line-low-frequency {
+  fill: none;
+  stroke-width: 1;
+  stroke: #00d;
+  stroke-opacity: 0.9;
+}
+
+path.line-speed {
+  fill: none;
+  stroke-width: 1;
+  stroke: #aa0;
+  stroke-opacity: 0.9;
+}
+
+.insulation path {
+  stroke: url(#line-gradient-insulation);
+}
+
+.updown path {
+  stroke: #ec8100;
+}
+
+.ab path {
+  stroke: #009a00;
+}
+
+.port12 path {
+  stroke: #0000a2;
+}
+
+path.chair-line {
+  fill: none;
+  stroke-width: 1;
+  stroke-opacity: 0.9;
+}
+line.semaphore-under-line,
+.semaphore line,
+.semaphore path {
+  stroke: #000;
+  fill: none;
+}
+
+.semaphore text.label-1{
+  font-size: 8pt;
+}
+.semaphore text.label-2{
+  font-size: 9pt;
+}
+.semaphore text.label-3{
+  font-size: 8pt;
+}
+
+text.voltage-label-tip {
+  fill: red;
+  font-weight: bold;
+}
+
+text.carrier-frequency-label-tip {
+  fill: green;
+  font-weight: bold;
+}
+
+text.low-frequency-label-tip {
+  fill: blue;
+  font-weight: bold;
+}
+
+text.speed-label-tip {
+  fill: #aa0;
+  font-weight: bold;
 }
