@@ -31,7 +31,7 @@ var xhchart = (function () {
     }
 
     // 组件常量
-    var gridSize = 48; // 将大图表横向划分为固定的高度单元, 然后方便分配
+    var gridSize = 49; // 将大图表横向划分为固定的高度单元, 然后方便分配
 
     // 组件初始化参数
     var option = {
@@ -99,7 +99,7 @@ var xhchart = (function () {
     var chartOffset = option.margin.top;
     var chartHeight = gridHeight * 20;
     var lampBeltOffset = chartOffset + chartHeight + gridHeight;
-    var semaphoreOffset = lampBeltOffset + gridHeight * 3;
+    var semaphoreOffset = lampBeltOffset + gridHeight * 4;
     var semaphoreHeight = gridHeight * 6;
     var insulationOffset = semaphoreOffset + semaphoreHeight + gridHeight * 2;
     var upDownOffset = insulationOffset + gridHeight * 4;
@@ -199,7 +199,7 @@ var xhchart = (function () {
 
       // 绘制灯和灯带
       drawLamp(lampBeltOffset);
-      drawLampBelt(lampBeltOffset, gridHeight * 1.5);
+      drawLampBelt(lampBeltOffset, gridHeight * 2.5, gridHeight * 1.5 / 2);
 
       // 绘制信号机
       drawSemaphore(semaphoreOffset, semaphoreHeight);
@@ -540,13 +540,13 @@ var xhchart = (function () {
 
       svg.append('text')
           .attr("x", option.labelLeftMargin)
-          .attr("y", lampBeltOffset + fontSizeOffset)
+          .attr("y", lampBeltOffset + fontSizeOffset + gridHeight / 2)
           .attr("dy", ".4em")
           .text('灯码');
 
       svg.append('text')
           .attr("x", option.labelLeftMargin)
-          .attr("y", semaphoreOffset + gridHeight + fontSizeOffset)
+          .attr("y", semaphoreOffset + gridHeight * 2 + fontSizeOffset)
           .attr("dy", ".35em")
           .text('信号机');
 
@@ -723,7 +723,8 @@ var xhchart = (function () {
             .attr('transform', 'translate(0,' + lampBeltOffset + ')');
       }
 
-      var cx = option.labelLeftMargin + 40;
+      var lampR = gridHeight * 1.5;
+      var cx = option.labelLeftMargin + 44;
       var lamp = lampGroup.selectAll('circle')
           .data([option.dataArray[option.dataArray.length - 1]]);
 
@@ -751,16 +752,16 @@ var xhchart = (function () {
       lamp.enter()
           .append('circle')
           .attr('cx', cx)
-          .attr('cy', gridHeight)
-          .attr('r', gridHeight)
+          .attr('cy', lampR)
+          .attr('r', lampR)
           .style('fill', lampFill);
 
       // 遮一层高光
       lamp.enter()
           .append('circle')
           .attr('cx', cx)
-          .attr('cy', gridHeight)
-          .attr('r', gridHeight)
+          .attr('cy', lampR)
+          .attr('r', lampR)
           .style('fill', 'url(#radial-gradient-lamp)');
 
       // 黄2灯的字
@@ -773,7 +774,7 @@ var xhchart = (function () {
       });
       text.enter().append('text')
           .attr("x", cx - lampTextSize / 2)
-          .attr("y", gridHeight)
+          .attr("y", lampR)
           .attr("dy", ".35em")
           .text(function (d) {
             return d.lamp === 'U2' ? '2' : '';
@@ -783,15 +784,15 @@ var xhchart = (function () {
     /**
      * 绘制灯带
      */
-    function drawLampBelt(lampBeltOffset, lampBeltHeight) {
+    function drawLampBelt(lampBeltOffset, lampBeltHeight, lampBeltMargin) {
       // 添加灯带
       var lampBeltGroup = svg.select('g.lampBelt');
       if (lampBeltGroup.size() == 0) {
         svg.append('rect')
             .attr('class', 'lamp-background')
             .attr("width", width)
-            .attr("height", lampBeltHeight * 2)
-            .attr('y', lampBeltOffset - lampBeltHeight / 2)
+            .attr("height", lampBeltHeight + lampBeltMargin * 2)
+            .attr('y', lampBeltOffset - lampBeltMargin)
             .attr('x', option.margin.left);
 
         lampBeltGroup = svg.append('g')
@@ -868,7 +869,7 @@ var xhchart = (function () {
 
       // 处理事件
       var eventDatas = option.dataArray.reduce(
-          function (previousValue, currentValue, currentIndex, array) {
+          function (previousValue, currentValue, currentIndex) {
             // 有事件的筛选出来
             if (currentValue.event) {
               previousValue.push({
@@ -885,7 +886,7 @@ var xhchart = (function () {
       event.attr('d', function (d) {
         var xs = x(d.index);
         var ys = lampBeltHeight;
-        var h = lampBeltHeight * 0.85;
+        var h = lampBeltHeight * 0.5;
         var halfLengthOfSide = h * 2 / Math.sqrt(3) / 2;
 
         var path = [
@@ -905,7 +906,7 @@ var xhchart = (function () {
           .attr('d', function (d) {
             var xs = x(d.index);
             var ys = lampBeltHeight;
-            var h = lampBeltHeight * 0.85;
+            var h = lampBeltHeight * 0.5;
             var halfLengthOfSide = h * 2 / Math.sqrt(3) / 2;
 
             var path = [
