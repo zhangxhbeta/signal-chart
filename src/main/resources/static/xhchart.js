@@ -17,7 +17,7 @@
  */
 var xhchart = (function () {
   'use strict';
-  
+
   var xhchart = {};
 
   /**
@@ -49,7 +49,8 @@ var xhchart = (function () {
       firstDateLabelFormat: initOption.firstDateLabelFormat || d3.time.format('%Y-%m-%d'), // 坐标轴第一个值的标签格式
       dateLabelFormat: initOption.dateLabelFormat || d3.time.format("%H:%M:%S"),      // 坐标轴日期格式
       voltageMaxs: initOption.voltageMaxs || [4000, 2000, 1000, 400, 200, 100, 40, 20, 10],
-      carrierFrequencyMaxs: initOption.carrierFrequencyMaxs || [4000, 2000, 1000, 400, 200, 100, 50],
+      carrierFrequencyMaxs: initOption.carrierFrequencyMaxs || [4000, 2000, 1000, 400, 200, 100,
+                                                                50],
       lowFrequencyMaxs: initOption.lowFrequencyMaxs || [4000, 2000, 100, 40],
       speedMaxs: initOption.speedMaxs || [500, 300, 200, 50],
       currentVoltageMaxIndex: initOption.currentVoltageMaxIndex || 1, // 感应电压图表y轴最大值
@@ -191,11 +192,11 @@ var xhchart = (function () {
     });
 
     function update(newDataArray) {
-      
+
       if (newDataArray !== undefined) {
         option.dataArray = newDataArray;
       }
-      
+
       // 绘制图表, 感应电压/载频/低频,速度
       drawChart(chartOffset, chartHeight);
 
@@ -587,7 +588,7 @@ var xhchart = (function () {
      * 绘制图表的部分
      */
     function drawChart(chartOffset, chartHeight) {
-      
+
       // 绘制竖方向网格
       function makeXAxis() {
         return d3.svg.axis()
@@ -603,7 +604,7 @@ var xhchart = (function () {
             .orient("left")
             .ticks(5);
       }
-      
+
       var groupChart = svg.select('g.lineChart');
 
       var y = d3.scale.linear()
@@ -880,6 +881,61 @@ var xhchart = (function () {
           .style("fill", lampFill);
 
       rectLamp.exit().remove();
+
+      // 处理事件
+      var eventDatas = option.dataArray.reduce(
+          function (previousValue, currentValue, currentIndex, array) {
+            // 有事件的筛选出来
+            if (currentValue.event) {
+              previousValue.push({
+                                   index: currentIndex,
+                                   event: currentValue.event
+                                 });
+            }
+            return previousValue;
+          }, []);
+
+      var event = lampBeltGroup.selectAll("path")
+          .data(eventDatas);
+
+      event.attr('d', function (d) {
+        var xs = x(d.index);
+        var ys = lampBeltHeight;
+        var h = lampBeltHeight * 0.85;
+        var halfLengthOfSide = h * 2 / Math.sqrt(3) / 2;
+
+        var path = [
+          'M', xs, ys,
+          'L', xs - halfLengthOfSide, ys + h,
+          'L', xs + halfLengthOfSide, ys + h,
+          'L', xs, ys,
+          'Z'
+        ];
+
+        return path.join(" ");
+      });
+
+      event.enter()
+          .append("path")
+          .attr('class', 'event')
+          .attr('d', function (d) {
+            var xs = x(d.index);
+            var ys = lampBeltHeight;
+            var h = lampBeltHeight * 0.85;
+            var halfLengthOfSide = h * 2 / Math.sqrt(3) / 2;
+
+            var path = [
+              'M', xs, ys,
+              'L', xs - halfLengthOfSide, ys + h,
+              'L', xs + halfLengthOfSide, ys + h,
+              'L', xs, ys,
+              'Z'
+            ];
+
+            return path.join(" ");
+          });
+
+      event.exit().remove();
     }
 
     /**
@@ -1071,10 +1127,65 @@ var xhchart = (function () {
             }
           });
 
-      svg.append("g")
+      var g = svg.append("g")
           .attr("class", "axis")
           .attr("transform", "translate(" + option.margin.left + "," + xAxisOffset + ")")
           .call(xAxis);
+
+      // 绘制上电标志
+      var powerOnDatas = option.dataArray.reduce(
+          function (previousValue, currentValue, currentIndex) {
+            // 有上电标志的
+            if (currentValue.powerOnFlag) {
+              previousValue.push({
+                                   index: currentIndex,
+                                   powerOnFlag: currentValue.powerOnFlag
+                                 });
+            }
+            return previousValue;
+          }, []);
+
+      var powerOn = g.selectAll("path.power-on")
+          .data(powerOnDatas);
+
+      powerOn.attr('d', function (d) {
+        var xs = x(d.index);
+        var ys = 0;
+        var h = gridHeight * 0.85;
+        var halfLengthOfSide = h * 2 / Math.sqrt(3) / 2;
+
+        var path = [
+          'M', xs, ys,
+          'L', xs - halfLengthOfSide, ys + h,
+          'L', xs + halfLengthOfSide, ys + h,
+          'L', xs, ys,
+          'Z'
+        ];
+
+        return path.join(" ");
+      });
+
+      powerOn.enter()
+          .append("path")
+          .attr('class', 'power-on')
+          .attr('d', function (d) {
+            var xs = x(d.index);
+            var ys = 0;
+            var h = gridHeight * 0.85;
+            var halfLengthOfSide = h * 2 / Math.sqrt(3) / 2;
+
+            var path = [
+              'M', xs, ys,
+              'L', xs - halfLengthOfSide, ys + h,
+              'L', xs + halfLengthOfSide, ys + h,
+              'L', xs, ys,
+              'Z'
+            ];
+
+            return path.join(" ");
+          });
+
+      powerOn.exit().remove();
     }
 
     /**

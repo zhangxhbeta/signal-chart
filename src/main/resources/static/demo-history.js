@@ -75,6 +75,9 @@ $(function () {
     ''     // 空白无码
   ];
   var startLampIndex = Math.round(Math.random() * lampStates.length); // 初始灯颜色
+  var powerOnCount = 1;
+  var eventCount = 1;
+
   var lastData;
 
   // 往 dataArry 里放初次数据, 之后每隔一段时间往 dataArray 里面追加一段数据, 最多不超过 xAxisMax 条, 超过后删掉最前面的数据
@@ -375,7 +378,9 @@ $(function () {
       ab: ab,                             // ab机, 0 和 1 2种状态
       port12: port12,                     // Ⅰ/Ⅱ端, 0 和 1 2种状态,
       date: lastData ? new Date(lastData.date.getTime() + 1000) // 当前时间
-          : new Date(startDate)
+          : new Date(startDate),
+      event: (eventCount++ % 640 === 0) ? '模拟事件' : null,
+      powerOnFlag: powerOnCount++ % 320 === 0
     };
 
     return lastData;

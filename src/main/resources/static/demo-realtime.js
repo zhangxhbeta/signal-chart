@@ -168,6 +168,8 @@ $(function () {
       ''     // 空白无码
     ];
     var startLampIndex = Math.round(Math.random() * lampStates.length); // 初始灯颜色
+    var powerOnCount = 1;
+    var eventCount = 1;
 
     function nextStation() {
       startStationNameIndex++;
@@ -322,7 +324,9 @@ $(function () {
         ab: ab,                             // ab机, 0 和 1 2种状态
         port12: port12,                     // Ⅰ/Ⅱ端, 0 和 1 2种状态,
         date: lastData ? new Date(lastData.date.getTime() + 1000) // 当前时间
-            : new Date(startDate)
+            : new Date(startDate),
+        event: (eventCount++ % 320 === 0) ? '模拟事件' : null,
+        powerOnFlag: powerOnCount++ % 640 === 0
       };
     }
 
@@ -338,7 +342,7 @@ $(function () {
       if (dataArray.length > xAxisMax + 1) {
         dataArray.splice(0, dataArray.length - xAxisMax - 1);
       }
-      
+
       chart.update(dataArray); // 重新绘制图表
     }, 2000);
 

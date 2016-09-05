@@ -63,6 +63,24 @@ rect.lamp-background {
   fill: #68778a;
 }
 
+path.event {
+  fill: #fdaa06;
+}
+
+path.event:hover {
+  fill: red;
+}
+
+.axis path.power-on {
+  fill: #fdaa06;
+  stroke: none;
+}
+
+.axis path.power-on:hover {
+  fill: red;
+  stroke: none;
+}
+
 .axis path,
 .axis line {
   fill: none;
