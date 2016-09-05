@@ -102,6 +102,12 @@ line.select-line {
   cursor: ew-resize;
 }
 
+line.reference-line {
+  stroke: green;
+  stroke-width: 1.5;
+  cursor: ew-resize;
+}
+
 rect.chart-tip {
   fill: #000;
   fill-opacity: 0.2;

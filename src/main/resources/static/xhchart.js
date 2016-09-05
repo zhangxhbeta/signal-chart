@@ -116,9 +116,10 @@ var xhchart = (function () {
     update();
 
     // 添加鼠标点击时的指示竖线
-    var selectLine, selectTip;
-    var drag = d3.behavior.drag();
-    drag.on('drag', function () {
+    var selectLine, selectTip, referenceLine; // 选择线, 选择线提示, 参考线, 也就是客户常说的主游标和副游标系统
+    var dragSelectLine = d3.behavior.drag().on('drag', function () {
+      d3.event.sourceEvent.stopPropagation();
+
       var e = d3.mouse(d3.select('#chart').node());
 
       var l = x.invert(e[0] - option.margin.left);
@@ -144,7 +145,32 @@ var xhchart = (function () {
       }
     });
 
+    var dragReferenceLine = d3.behavior.drag().on('drag', function () {
+      d3.event.sourceEvent.stopPropagation();
+
+      var e = d3.mouse(d3.select('#chart').node());
+      var l = x.invert(e[0] - option.margin.left);
+      var index = Math.round(l);
+      var pointX = adjustX(l);
+
+      if (pointX < option.margin.left) {
+        pointX = option.margin.left;
+      }
+
+      if (pointX > (size.width - option.margin.right)) {
+        pointX = size.width - option.margin.right;
+      }
+
+      if (referenceLine) {
+        referenceLine.attr('x1', pointX)
+            .attr('x2', pointX)
+            .datum(index);
+      }
+    });
+
     svg.on('click', function () {
+      if (d3.event.defaultPrevented) return;
+
       var e = d3.mouse(d3.select('#chart').node());
       // 点在外面的不处理
       if (e[0] < option.margin.left || e[0] > (size.width - option.margin.right)) {
@@ -155,6 +181,21 @@ var xhchart = (function () {
       var index = Math.round(l);
       var pointX = adjustX(l);
       var pointY = e[1] - option.margin.top;
+      var referenceL = l - 100;
+      var referencePointX = adjustX(referenceL);
+
+      if (referenceLine) {
+        referenceLine.style('display', null);
+      } else {
+        referenceLine = svg.append('line')
+            .attr('class', 'reference-line')
+            .attr('x1', referencePointX)
+            .attr('y1', option.margin.top)
+            .attr('x2', referencePointX)
+            .attr('y2', size.height - option.margin.bottom)
+            .datum(Math.round(referenceL))
+            .call(dragReferenceLine);
+      }
 
       if (selectLine) {
         selectLine.attr('x1', pointX)
@@ -167,7 +208,7 @@ var xhchart = (function () {
             .attr('y1', option.margin.top)
             .attr('x2', pointX)
             .attr('y2', size.height - option.margin.bottom)
-            .call(drag);
+            .call(dragSelectLine);
       }
 
       if (!selectTip) {
@@ -1191,6 +1232,7 @@ var xhchart = (function () {
     }
 
     function adjustX(index) {
+      if (index <= 0) return option.margin.left;
       return x(index) + option.margin.left;
     }
 
@@ -1360,7 +1402,9 @@ var xhchart = (function () {
 
       // 触发事件处理函数
       if (option.onSelectLine && index >= 0 && index < option.dataArray.length) {
-        option.onSelectLine(index, option.dataArray[index]);
+        // 获取计算持续时间
+        var start = referenceLine.datum();
+        option.onSelectLine(index, option.dataArray[index], start, option.dataArray[start]);
       }
 
       // 隔多少秒隐藏
@@ -1375,19 +1419,20 @@ var xhchart = (function () {
     }
 
     var toggleSelectLine = function () {
-      if (selectLine) {
-        if (selectLine.style('display') !== 'none') {
-          selectLine.style('display', 'none');
-        } else {
-          selectLine.style('display', null);
-        }
 
-        if (selectTip.style('display') !== 'none') {
-          selectTip.style('display', 'none');
-        } else {
-          selectTip.style('display', null);
+      var toggleDisplay = function (element) {
+        if (element) {
+          if (element.style('display') !== 'none') {
+            element.style('display', 'none');
+          } else {
+            element.style('display', null);
+          }
         }
-      }
+      };
+
+      toggleDisplay(selectLine);
+      toggleDisplay(selectTip);
+      toggleDisplay(referenceLine);
     };
 
     return {
