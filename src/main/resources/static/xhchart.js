@@ -1359,9 +1359,7 @@ var xhchart = (function () {
 
       var index = adjust(selectLine.datum());
       var start = adjust(referenceLine.datum());
-
-      console.log('index: ' + index + ', start: ' + start);
-
+      
       option.onSelectLine(index, option.dataArray[index], start, option.dataArray[start]);
     }
 
