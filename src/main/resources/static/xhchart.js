@@ -63,7 +63,8 @@ var xhchart = (function () {
       currentSpeedToggle: initOption.currentSpeedToggle || true, // 速度图表是否选中
       dataArray: initOption.dataArray || [], // 测试数据
       carrierFrequencyStartValues: initOption.carrierFrequencyStartValues || [25, 550, 1700],
-      onSelectLine: initOption.onSelectLine
+      onSelectLine: initOption.onSelectLine,
+      showReferenceLine: initOption.showReferenceLine !== undefined ? initOption.showReferenceLine : true // 是否显示参考线(副游标)
     };
 
     var fontSizeOffset = option.fontSize / 2;
@@ -187,17 +188,19 @@ var xhchart = (function () {
       var referenceL = l - 100;
       var referencePointX = adjustX(referenceL);
 
-      if (referenceLine) {
-        referenceLine.style('display', null);
-      } else {
-        referenceLine = svg.append('line')
-            .attr('class', 'reference-line')
-            .attr('x1', referencePointX)
-            .attr('y1', option.margin.top)
-            .attr('x2', referencePointX)
-            .attr('y2', size.height - option.margin.bottom)
-            .datum(Math.round(referenceL))
-            .call(dragReferenceLine);
+      if (option.showReferenceLine) {
+        if (referenceLine) {
+          referenceLine.style('display', null);
+        } else {
+          referenceLine = svg.append('line')
+              .attr('class', 'reference-line')
+              .attr('x1', referencePointX)
+              .attr('y1', option.margin.top)
+              .attr('x2', referencePointX)
+              .attr('y2', size.height - option.margin.bottom)
+              .datum(Math.round(referenceL))
+              .call(dragReferenceLine);
+        }
       }
 
       if (selectLine) {
@@ -1358,7 +1361,10 @@ var xhchart = (function () {
       }
 
       var index = adjust(selectLine.datum());
-      var start = adjust(referenceLine.datum());
+      var start = 0;
+      if (option.showReferenceLine && referenceLine) {
+        start = adjust(referenceLine.datum());
+      }
       
       option.onSelectLine(index, option.dataArray[index], start, option.dataArray[start]);
     }

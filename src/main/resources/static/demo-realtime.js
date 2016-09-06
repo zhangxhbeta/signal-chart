@@ -22,6 +22,7 @@ $(function () {
   var chart = xhchart.signal({
                                xAxisMax: xAxisMax, // x轴数据总数量
                                dataArray: dataArray, // 提供给图表的数据数组
+                               showReferenceLine: false,
                                onSelectLine: function (index, data, refIndex, refData) {
                                  // index 是当前选中索引
                                  // data 是当前选择的 dataArray 里面的数据
@@ -32,18 +33,6 @@ $(function () {
                                  $('#voltage').text(data.voltage);
                                  $('#lowFrequency').text(data.lowFrequency);
                                  $('#carrierFrequency').text(data.carrierFrequency);
-                                 
-                                 // 更新持续时间
-                                 // 因为我们的模拟数据是一秒一条, 所以直接用2个索引相减就得到了持续的秒
-                                 // 真实情况, 如果不是连续的这种, 可能涉及到对数组里面对象 的计算
-                                 var n = Math.abs(index - refIndex);
-                                 if (n > 60) {
-                                   var minute = Math.floor(n / 60);
-                                   var second = n % 60;
-                                   $('#duration').text(minute + '分' + second + '秒');
-                                 } else {
-                                   $('#duration').text(n + '秒');
-                                 }
 
                                  // ... 更新其他表格信息
                                }
