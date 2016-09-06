@@ -57,10 +57,10 @@ var xhchart = (function () {
       currentCarrierFrequencyMaxIndex: initOption.currentCarrierFrequencyMaxIndex || 0, // 载频部分的图表y轴最大值
       currentLowFrequencyMaxIndex: initOption.currentLowFrequencyMaxIndex || 3, // 低频部分的图表y轴最大值
       currentSpeedMaxIndex: initOption.currentSpeedMaxIndex || 0, // 速度图表y轴最大值
-      currentVoltageToggle: initOption.currentVoltageToggle || true,
-      currentCarrierFrequencyIndexToggle: initOption.currentCarrierFrequencyIndexToggle || true,
-      currentLowFrequencyToggle: initOption.currentLowFrequencyToggle || true,
-      currentSpeedToggle: initOption.currentSpeedToggle || true, // 速度图表是否选中
+      currentVoltageToggle: initOption.currentVoltageToggle !== undefined ? initOption.currentVoltageToggle : true,
+      currentCarrierFrequencyIndexToggle: initOption.currentCarrierFrequencyIndexToggle !== undefined ? initOption.currentCarrierFrequencyIndexToggle : true,
+      currentLowFrequencyToggle: initOption.currentLowFrequencyToggle !== undefined ? initOption.currentLowFrequencyToggle : true,
+      currentSpeedToggle: initOption.currentSpeedToggle !== undefined ? initOption.currentSpeedToggle : true, // 速度图表是否选中
       dataArray: initOption.dataArray || [], // 测试数据
       carrierFrequencyStartValues: initOption.carrierFrequencyStartValues || [25, 550, 1700],
       onSelectLine: initOption.onSelectLine,
