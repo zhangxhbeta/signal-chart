@@ -1347,8 +1347,8 @@ var xhchart = (function () {
     function trigOnSelectLineEvent() {
 
       function adjust(x) {
-        if (x > option.dataArray.length) {
-          x = option.dataArray.length;
+        if (x >= option.dataArray.length) {
+          x = option.dataArray.length - 1;
         }
 
         if (x < 0) {
@@ -1359,6 +1359,8 @@ var xhchart = (function () {
 
       var index = adjust(selectLine.datum());
       var start = adjust(referenceLine.datum());
+
+      console.log('index: ' + index + ', start: ' + start);
 
       option.onSelectLine(index, option.dataArray[index], start, option.dataArray[start]);
     }
