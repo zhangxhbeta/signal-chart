@@ -36,8 +36,14 @@ $(function () {
                                  // 更新持续时间
                                  // 因为我们的模拟数据是一秒一条, 所以直接用2个索引相减就得到了持续的秒
                                  // 真实情况, 如果不是连续的这种, 可能涉及到对数组里面对象 的计算
-                                 var second = Math.abs(index - refIndex);
-                                 $('#duration').text(second + '秒');
+                                 var n = Math.abs(index - refIndex);
+                                 if (n > 60) {
+                                   var minute = Math.floor(n / 60);
+                                   var second = n % 60;
+                                   $('#duration').text(minute + '分' + second + '秒');
+                                 } else {
+                                   $('#duration').text(n + '秒');
+                                 }
 
                                  // ... 更新其他表格信息
                                }

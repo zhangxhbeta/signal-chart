@@ -137,7 +137,8 @@ var xhchart = (function () {
 
       if (selectLine) {
         selectLine.attr('x1', pointX)
-            .attr('x2', pointX);
+            .attr('x2', pointX)
+            .datum(index);
       }
 
       if (selectTip) {
@@ -165,6 +166,8 @@ var xhchart = (function () {
         referenceLine.attr('x1', pointX)
             .attr('x2', pointX)
             .datum(index);
+
+        trigOnSelectLineEvent();
       }
     });
 
@@ -200,6 +203,7 @@ var xhchart = (function () {
       if (selectLine) {
         selectLine.attr('x1', pointX)
             .attr('x2', pointX)
+            .datum(index)
             .style('display', null);
       } else {
         selectLine = svg.append('line')
@@ -208,6 +212,7 @@ var xhchart = (function () {
             .attr('y1', option.margin.top)
             .attr('x2', pointX)
             .attr('y2', size.height - option.margin.bottom)
+            .datum(index)
             .call(dragSelectLine);
       }
 
@@ -1339,6 +1344,25 @@ var xhchart = (function () {
       ];
     }
 
+    function trigOnSelectLineEvent() {
+
+      function adjust(x) {
+        if (x > option.dataArray.length) {
+          x = option.dataArray.length;
+        }
+
+        if (x < 0) {
+          x = 0;
+        }
+        return x;
+      }
+
+      var index = adjust(selectLine.datum());
+      var start = adjust(referenceLine.datum());
+
+      option.onSelectLine(index, option.dataArray[index], start, option.dataArray[start]);
+    }
+
     function updateSelectTip(selectTip, pointX, pointY, index) {
 
       var labelData = chartSelectTip(index);
@@ -1401,11 +1425,7 @@ var xhchart = (function () {
       }
 
       // 触发事件处理函数
-      if (option.onSelectLine && index >= 0 && index < option.dataArray.length) {
-        // 获取计算持续时间
-        var start = referenceLine.datum();
-        option.onSelectLine(index, option.dataArray[index], start, option.dataArray[start]);
-      }
+      trigOnSelectLineEvent();
 
       // 隔多少秒隐藏
       if (timeoutHandler) {
