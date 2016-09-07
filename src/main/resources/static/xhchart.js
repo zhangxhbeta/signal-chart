@@ -131,7 +131,9 @@ var xhchart = (function () {
 
       var l = x.invert(e[0] - option.margin.left);
       var index = Math.round(l);
-      var pointX = adjustX(l);
+      index = fixIndexOutRange(index);
+
+      var pointX = xInSvg(l);
       var pointY = e[1] - option.margin.top;
 
       if (pointX < option.margin.left) {
@@ -159,7 +161,7 @@ var xhchart = (function () {
       var e = d3.mouse(d3.select('#chart').node());
       var l = x.invert(e[0] - option.margin.left);
       var index = Math.round(l);
-      var pointX = adjustX(l);
+      var pointX = xInSvg(l);
 
       if (pointX < option.margin.left) {
         pointX = option.margin.left;
@@ -191,10 +193,12 @@ var xhchart = (function () {
       // 处理数据问题
       var l = x.invert(e[0] - option.margin.left);
       var index = Math.round(l);
-      var pointX = adjustX(l);
+      index = fixIndexOutRange(index);
+
+      var pointX = xInSvg(l);
       var pointY = e[1] - option.margin.top;
       var referenceL = l - 100;
-      var referencePointX = adjustX(referenceL);
+      var referencePointX = xInSvg(referenceL);
 
       if (option.showReferenceLine) {
         if (referenceLine) {
@@ -1266,7 +1270,7 @@ var xhchart = (function () {
       svg.attr('height', _svgSize.height);
     }
 
-    function adjustX(index) {
+    function xInSvg(index) {
       if (index <= 0) {
         return option.margin.left;
       }
@@ -1378,21 +1382,10 @@ var xhchart = (function () {
 
     function trigOnSelectLineEvent() {
 
-      function adjust(x) {
-        if (x >= option.dataArray.length) {
-          x = option.dataArray.length - 1;
-        }
-
-        if (x < 0) {
-          x = 0;
-        }
-        return x;
-      }
-
-      var index = adjust(selectLine.datum());
+      var index = fixIndexOutRange(selectLine.datum());
       var start = 0;
       if (option.showReferenceLine && referenceLine) {
-        start = adjust(referenceLine.datum());
+        start = fixIndexOutRange(referenceLine.datum());
       }
 
       option.onSelectLine(index, option.dataArray[index], start, option.dataArray[start]);
@@ -1492,6 +1485,17 @@ var xhchart = (function () {
       toggleDisplay(selectTip);
       toggleDisplay(referenceLine);
     };
+
+    function fixIndexOutRange(x) {
+      if (x >= option.dataArray.length) {
+        x = option.dataArray.length - 1;
+      }
+
+      if (x < 0) {
+        x = 0;
+      }
+      return x;
+    }
 
     return {
       update: update,
