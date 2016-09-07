@@ -299,7 +299,7 @@ $(function () {
         port12Random -= 1;
       }
 
-      if (eventCount % 100 == 0) {
+      if (eventCount % 421 == 0) {
         upDown = '';
         insulation = -1;
         ab = -1;
