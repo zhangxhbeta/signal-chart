@@ -17,7 +17,7 @@ $(function () {
   // 往 dataArry 里放初次数据, 之后每隔一段时间往 dataArray 里面追加一段数据, 最多不超过 xAxisMax 条, 超过后删掉最前面的数据
   var dataArray = []; // 初始值空
   pushTestData();
-
+  
   // 初始化图表
   var chart = xhchart.signal({
                                xAxisMax: xAxisMax, // x轴数据总数量
@@ -299,6 +299,13 @@ $(function () {
         port12Random -= 1;
       }
 
+      if (eventCount % 100 == 0) {
+        upDown = '';
+        insulation = -1;
+        ab = -1;
+        port12 = -1;
+      }
+
       return {
         // 灯状态
         // 'L'     绿灯
@@ -318,12 +325,12 @@ $(function () {
         stationName: stationName,           // 车站名
         stationNo: stationNo,               // 车站号
         seamaphoreNo: seamaphoreNo,         // 信号机号
-        seamaphoreState: seamaphoreState,   // 信号机状态, 通过 'pass', 预告 'notice', 进站
-                                            // 'in', 出站 'out'
-        upDown: upDown,                     // 上行/下行标志, 上行 'S', 下行 'X'
-        insulation: insulation,             // 绝缘, 0 和 1 2种状态
-        ab: ab,                             // ab机, 0 和 1 2种状态
-        port12: port12,                     // Ⅰ/Ⅱ端, 0 和 1 2种状态,
+        seamaphoreState: eventCount % 100 < 0 ? '' : seamaphoreState,   // 信号机状态, 通过 'pass', 预告 'notice', 进站
+                                            // 'in', 出站 'out', 其他 ''
+        upDown: upDown,                     // 上行/下行标志, 上行 'S', 下行 'X', 无效 ''
+        insulation: insulation,             // 绝缘, 0 / 1 / -1或undefined (无效)
+        ab: ab,                             // ab机, 0 / 1 / -1或undefined (无效)
+        port12: port12,                     // Ⅰ/Ⅱ端, 0 / 1 / -1或undefined (无效)
         date: lastData ? new Date(lastData.date.getTime() + 1000) // 当前时间
             : new Date(startDate),
         event: (eventCount++ % 320 === 0) ? '模拟事件' : null,
@@ -331,7 +338,7 @@ $(function () {
       };
     }
 
-    for (var i = 0; i < 200; i++) {
+    for (var i = 0; i < 300; i++) {
       dataArray.push(generateNewData());
     }
 

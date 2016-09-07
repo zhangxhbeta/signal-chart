@@ -57,14 +57,20 @@ var xhchart = (function () {
       currentCarrierFrequencyMaxIndex: initOption.currentCarrierFrequencyMaxIndex || 0, // 载频部分的图表y轴最大值
       currentLowFrequencyMaxIndex: initOption.currentLowFrequencyMaxIndex || 3, // 低频部分的图表y轴最大值
       currentSpeedMaxIndex: initOption.currentSpeedMaxIndex || 0, // 速度图表y轴最大值
-      currentVoltageToggle: initOption.currentVoltageToggle !== undefined ? initOption.currentVoltageToggle : true,
-      currentCarrierFrequencyIndexToggle: initOption.currentCarrierFrequencyIndexToggle !== undefined ? initOption.currentCarrierFrequencyIndexToggle : true,
-      currentLowFrequencyToggle: initOption.currentLowFrequencyToggle !== undefined ? initOption.currentLowFrequencyToggle : true,
-      currentSpeedToggle: initOption.currentSpeedToggle !== undefined ? initOption.currentSpeedToggle : true, // 速度图表是否选中
+      currentVoltageToggle: initOption.currentVoltageToggle !== undefined
+          ? initOption.currentVoltageToggle : true,
+      currentCarrierFrequencyIndexToggle: initOption.currentCarrierFrequencyIndexToggle
+                                          !== undefined
+          ? initOption.currentCarrierFrequencyIndexToggle : true,
+      currentLowFrequencyToggle: initOption.currentLowFrequencyToggle !== undefined
+          ? initOption.currentLowFrequencyToggle : true,
+      currentSpeedToggle: initOption.currentSpeedToggle !== undefined
+          ? initOption.currentSpeedToggle : true, // 速度图表是否选中
       dataArray: initOption.dataArray || [], // 测试数据
       carrierFrequencyStartValues: initOption.carrierFrequencyStartValues || [25, 550, 1700],
       onSelectLine: initOption.onSelectLine,
-      showReferenceLine: initOption.showReferenceLine !== undefined ? initOption.showReferenceLine : true // 是否显示参考线(副游标)
+      showReferenceLine: initOption.showReferenceLine !== undefined ? initOption.showReferenceLine
+          : true // 是否显示参考线(副游标)
     };
 
     var fontSizeOffset = option.fontSize / 2;
@@ -173,7 +179,9 @@ var xhchart = (function () {
     });
 
     svg.on('click', function () {
-      if (d3.event.defaultPrevented) return;
+      if (d3.event.defaultPrevented) {
+        return;
+      }
 
       var e = d3.mouse(d3.select('#chart').node());
       // 点在外面的不处理
@@ -222,7 +230,8 @@ var xhchart = (function () {
       if (!selectTip) {
         selectTip = svg.append('g')
             .attr('class', 'select-tip')
-            .attr('transform', 'translate(' + pointX + ',' + option.margin.top + ')');
+            .attr('transform', 'translate(' + pointX + ',' + option.margin.top + ')')
+            .style('display', 'none');
 
         selectTip.append('rect')
             .attr('class', 'chart-tip')
@@ -260,21 +269,29 @@ var xhchart = (function () {
       // 绘制绝缘
       drawChairLine(insulationOffset, 'insulation', function (d) {
         return y(d.insulation || 0);
+      }, function (d) {
+        return (d.insulation !== undefined && d.insulation !== -1);
       });
 
       // 绘制上/下行
       drawChairLine(upDownOffset, 'updown', function (d) {
         return y(d.upDown === 'X' ? 1 : 0);
+      }, function (d) {
+        return (d.upDown !== undefined && d.upDown !== '');
       });
 
       // 绘制A/B机
       drawChairLine(abOffset, 'ab', function (d) {
         return y(d.ab || 0);
+      }, function (d) {
+        return (d.ab !== undefined && d.ab !== -1);
       });
 
       // 绘制 1/2 端
       drawChairLine(port12Offset, 'port12', function (d) {
         return y(d.port12 || 0);
+      }, function (d) {
+        return (d.port12 !== undefined && d.port12 !== -1);
       });
 
       // 绘制 x 轴
@@ -974,16 +991,20 @@ var xhchart = (function () {
     /**
      * 绘制阶梯图
      */
-    function drawChairLine(seamaphoreOffset, cls, generateorY) {
+    function drawChairLine(seamaphoreOffset, cls, generateorY, defined) {
 
       svg.select('g.' + cls).remove();
       var g = svg.append('g')
           .attr('class', cls)
           .attr('transform', 'translate(' + option.margin.left + ',' + seamaphoreOffset + ')');
 
-      var line = d3.svg.line().x(function (d, i) {
-        return x(i);
-      }).y(generateorY).interpolate("step-after");
+      var line = d3.svg.line()
+          .x(function (d, i) {
+            return x(i);
+          })
+          .y(generateorY)
+          .defined(defined)
+          .interpolate("step-after");
 
       g.append("path")
           .datum(option.dataArray)
@@ -1019,21 +1040,28 @@ var xhchart = (function () {
           .attr('transform', 'translate(' + option.margin.left + ',' + seamaphoreOffset + ')');
 
       // 过滤数据
+      var lastIndexData;
       var stationDatas = option.dataArray.reduce(
           function (previousValue, currentValue, currentIndex, array) {
-            if (currentIndex > 0) {
-              var prevIndexData = array[currentIndex - 1];
-              if (prevIndexData.seamaphoreNo !== currentValue.seamaphoreNo
-                  || prevIndexData.seamaphoreState !== currentValue.seamaphoreState) {
-                // 前一个状态和现在这个不同, 说明需要图表上绘制一下
-                previousValue.push({
-                                     index: currentIndex,
-                                     value: prevIndexData
-                                   });
 
-              }
+            // 跳过无效值
+            if (currentValue.seamaphoreState === undefined || currentValue.seamaphoreState === '') {
+              return previousValue;
             }
+
+            if (lastIndexData !== undefined &&
+                (lastIndexData.seamaphoreNo !== currentValue.seamaphoreNo
+                 || lastIndexData.seamaphoreState !== currentValue.seamaphoreState)) {
+              // 前一个状态和现在这个不同, 说明需要图表上绘制一下
+              previousValue.push({
+                                   index: currentIndex,
+                                   value: lastIndexData
+                                 });
+            }
+
+            lastIndexData = currentValue;
             return previousValue;
+
           }, []);
 
       var grid = g.selectAll("g")
@@ -1239,7 +1267,9 @@ var xhchart = (function () {
     }
 
     function adjustX(index) {
-      if (index <= 0) return option.margin.left;
+      if (index <= 0) {
+        return option.margin.left;
+      }
       return x(index) + option.margin.left;
     }
 
@@ -1364,7 +1394,7 @@ var xhchart = (function () {
       if (option.showReferenceLine && referenceLine) {
         start = adjust(referenceLine.datum());
       }
-      
+
       option.onSelectLine(index, option.dataArray[index], start, option.dataArray[start]);
     }
 
