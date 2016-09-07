@@ -189,7 +189,7 @@ $(function () {
       var lastData = dataArray[dataArray.length - 1];
 
       if (lampRandom == 0) {
-        lampRandom = Math.round(Math.random() * 60 + 30);
+        lampRandom = Math.round(Math.random() * 120 + 60);
 
         while (startLampIndex >= lampStates.length) {
           startLampIndex -= lampStates.length;
