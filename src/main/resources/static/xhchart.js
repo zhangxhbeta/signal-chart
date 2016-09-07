@@ -246,8 +246,7 @@ var xhchart = (function () {
       // 绘制图表, 感应电压/载频/低频,速度
       drawChart(chartOffset, chartHeight);
 
-      // 绘制灯和灯带
-      drawLamp(lampBeltOffset);
+      // 绘制灯带
       drawLampBelt(lampBeltOffset, gridHeight * 2.5, gridHeight * 1.5 / 2);
 
       // 绘制信号机
@@ -762,7 +761,7 @@ var xhchart = (function () {
     /**
      * 绘制实时灯状态
      */
-    function drawLamp(lampBeltOffset) {
+    function drawLamp(lampBeltOffset, index) {
       // 绘制当前灯
       var lampGroup = svg.select('g.lamp');
       if (lampGroup.size() == 0) {
@@ -775,7 +774,7 @@ var xhchart = (function () {
       var lampR = gridHeight * 1.5;
       var cx = option.labelLeftMargin + 44;
       var lamp = lampGroup.selectAll('circle')
-          .data([option.dataArray[option.dataArray.length - 1]]);
+          .data([option.dataArray[index]]);
 
       var lampFill = function (d) {
         if (d.lamp === '' || d.lamp === 'blank') {
@@ -816,7 +815,7 @@ var xhchart = (function () {
       // 黄2灯的字
       var lampTextSize = 8;
       var text = lampGroup.selectAll('text')
-          .data([option.dataArray[option.dataArray.length - 1]]);
+          .data([option.dataArray[index]]);
 
       text.text(function (d) {
         return d.lamp === 'U2' ? '2' : '';
@@ -1370,6 +1369,9 @@ var xhchart = (function () {
     }
 
     function updateSelectTip(selectTip, pointX, pointY, index) {
+
+      // 绘制灯码
+      drawLamp(lampBeltOffset, index);
 
       var labelData = chartSelectTip(index);
       var mouseMargin = {
