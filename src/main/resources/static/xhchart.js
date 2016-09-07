@@ -270,28 +270,28 @@ var xhchart = (function () {
       drawChairLine(insulationOffset, 'insulation', function (d) {
         return y(d.insulation || 0);
       }, function (d) {
-        return (d.insulation !== undefined && d.insulation !== -1);
+        return (d.insulation === 0 || d.insulation === 1);
       });
 
       // 绘制上/下行
       drawChairLine(upDownOffset, 'updown', function (d) {
         return y(d.upDown === 'X' ? 1 : 0);
       }, function (d) {
-        return (d.upDown !== undefined && d.upDown !== '');
+        return (d.upDown === 'X' || d.upDown === 'S');
       });
 
       // 绘制A/B机
       drawChairLine(abOffset, 'ab', function (d) {
         return y(d.ab || 0);
       }, function (d) {
-        return (d.ab !== undefined && d.ab !== -1);
+        return (d.ab === 0 || d.ab === 1);
       });
 
       // 绘制 1/2 端
       drawChairLine(port12Offset, 'port12', function (d) {
         return y(d.port12 || 0);
       }, function (d) {
-        return (d.port12 !== undefined && d.port12 !== -1);
+        return (d.port12 === 0 || d.port12 === 1);
       });
 
       // 绘制 x 轴
