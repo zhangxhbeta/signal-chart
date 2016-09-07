@@ -1042,7 +1042,7 @@ var xhchart = (function () {
       // 过滤数据
       var lastIndexData;
       var stationDatas = option.dataArray.reduce(
-          function (previousValue, currentValue, currentIndex, array) {
+          function (previousValue, currentValue, currentIndex) {
 
             // 跳过无效值
             if (currentValue.seamaphoreState === undefined || currentValue.seamaphoreState === '') {
