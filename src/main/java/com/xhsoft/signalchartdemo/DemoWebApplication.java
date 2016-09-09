@@ -19,6 +19,7 @@ import java.util.Arrays;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 
 @SpringBootApplication
 public class DemoWebApplication {
@@ -70,8 +71,8 @@ public class DemoWebApplication {
   public static class WebjarsController {
     @ResponseBody
     @RequestMapping(value = "/webjarsjs", produces = "application/javascript")
-    public String webjarjs() {
-      return RequireJS.getSetupJavaScript("/webjars/");
+    public String webjarjs(HttpServletRequest request) {
+      return RequireJS.getSetupJavaScript(request.getContextPath() +  "/webjars/");
     }
   }
 
