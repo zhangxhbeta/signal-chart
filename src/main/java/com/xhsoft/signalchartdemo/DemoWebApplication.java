@@ -6,11 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.SimpleCommandLinePropertySource;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.webjars.RequireJS;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -66,13 +62,12 @@ public class DemoWebApplication {
     }
   }
 
-  @Controller
-  public static class WebjarsController {
-    @ResponseBody
-    @RequestMapping(value = "/webjarsjs", produces = "application/javascript")
-    public String webjarjs() {
-      return RequireJS.getSetupJavaScript("/webjars/");
-    }
-  }
-
+  // @Override
+  // public void onStartup(ServletContext servletContext) throws ServletException {
+  //   if (env == null) {
+  //     log.info("开始 Web 应用配置, profiles: None");
+  //   } else {
+  //     log.info("开始 Web 应用配置, profiles: {}", Arrays.toString(env.getActiveProfiles()));
+  //   }
+  // }
 }

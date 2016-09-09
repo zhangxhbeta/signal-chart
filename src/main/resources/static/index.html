@@ -10,8 +10,8 @@
   <meta content="webkit" name="renderer">
 
   <!-- css -->
-  <link rel='stylesheet' href='/webjars/bootstrap/css/bootstrap.min.css'>
-  <link rel='stylesheet' href='/webjars/font-awesome/css/font-awesome.min.css'>
+  <link href="assets/css/bootstrap.css" rel="stylesheet">
+  <link href="assets/css/font-awesome.css" rel="stylesheet">
   <link href="assets/css/custom-chart.css" rel="stylesheet">
 
   <!--[if lt IE 9]>
@@ -230,10 +230,17 @@
   </div>
 
 </div>
+<script src="assets/scripts/vendor/jquery/jquery.min.js"></script>
 
-<!--采用 require.js 管理 js 的组件-->
-<script src="webjarsjs"></script>
-<script data-main="assets/scripts/app.js" src="/webjars/requirejs/require.min.js"></script>
+<!--[if lte IE 8]>
+<script src="assets/scripts/vendor/r2d3/r2d3.js" charset="utf-8"></script><![endif]-->
+<!--[if gte IE 9]><!-->
+<script src="assets/scripts/vendor/d3/d3.min.js"></script>
+<!--<![endif]-->
+
+<!--图表组件-->
+<script src="xhchart.js"></script>
+<!--demo-->
 <script src="demo-realtime.js"></script>
 </body>
 
