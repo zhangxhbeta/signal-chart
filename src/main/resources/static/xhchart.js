@@ -70,7 +70,9 @@ var xhchart = (function () {
       carrierFrequencyStartValues: initOption.carrierFrequencyStartValues || [25, 550, 1700],
       onSelectLine: initOption.onSelectLine,
       showReferenceLine: initOption.showReferenceLine !== undefined ? initOption.showReferenceLine
-          : true // 是否显示参考线(副游标)
+          : true, // 是否显示参考线(副游标)
+      lineColor1: initOption.lineColor1 || '#04c6dd',
+      lineColor2: initOption.lineColor2 || '#b702cc'
     };
 
     var fontSizeOffset = option.fontSize / 2;
@@ -306,16 +308,18 @@ var xhchart = (function () {
 
       var defs = svg.append('defs');
 
-      // 绝缘渐变
+      // 绝缘/上下行/ab机/iii端渐变
       defs.append("linearGradient")
-          .attr("id", "line-gradient-insulation")
+          .attr('gradientUnits', 'userSpaceOnUse')
+          .attr('spreadMethod', 'pad')
+          .attr("id", "line-gradient-1")
           .attr("x1", '0%').attr("y1", '0%')
           .attr("x2", '0%').attr("y2", '100%')
           .selectAll("stop")
           .data([
-                  {offset: "0%", color: "red"},
-                  {offset: "50%", color: "red"},
-                  {offset: "100%", color: "blue"}
+                  {offset: gridHeight / size.height, color: option.lineColor1},
+                  {offset: gridHeight / size.height, color: option.lineColor2},
+                  {offset: gridHeight * 2 / size.height, color: option.lineColor2}
                 ])
           .enter()
           .append("stop")

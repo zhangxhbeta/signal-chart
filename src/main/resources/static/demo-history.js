@@ -387,8 +387,8 @@ $(function () {
                                           // 'in', 出站 'out'
       upDown: upDown,                     // 上行/下行标志, 上行 'S', 下行 'X'
       insulation: insulation,             // 绝缘, 0 和 1 2种状态
-      ab: ab,                             // ab机, 0 和 1 2种状态
-      port12: port12,                     // Ⅰ/Ⅱ端, 0 和 1 2种状态,
+      ab: 1,                             // ab机, 0 和 1 2种状态
+      port12: 0,                     // Ⅰ/Ⅱ端, 0 和 1 2种状态,
       date: lastData ? new Date(lastData.date.getTime() + 1000) // 当前时间
           : new Date(startDate),
       event: (eventCount++ % 640 === 0) ? '模拟事件' : null,

@@ -142,26 +142,27 @@ path.line-speed {
 }
 
 .insulation path {
-  stroke: url(#line-gradient-insulation);
+  stroke: url(#line-gradient-1);
 }
 
 .updown path {
-  stroke: #ec8100;
+  stroke: url(#line-gradient-1);
 }
 
 .ab path {
-  stroke: #009a00;
+  stroke: url(#line-gradient-1);
 }
 
 .port12 path {
-  stroke: #0000a2;
+  stroke: url(#line-gradient-1);
 }
 
 path.chair-line {
   fill: none;
-  stroke-width: 1;
+  stroke-width: 1.5;
   stroke-opacity: 0.9;
 }
+
 line.semaphore-under-line,
 .semaphore line,
 .semaphore path {
