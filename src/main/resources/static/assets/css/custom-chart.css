@@ -141,22 +141,6 @@ path.line-speed {
   stroke-opacity: 0.9;
 }
 
-.insulation path {
-  stroke: url(#line-gradient-1);
-}
-
-.updown path {
-  stroke: url(#line-gradient-1);
-}
-
-.ab path {
-  stroke: url(#line-gradient-1);
-}
-
-.port12 path {
-  stroke: url(#line-gradient-1);
-}
-
 path.chair-line {
   fill: none;
   stroke-width: 1.5;

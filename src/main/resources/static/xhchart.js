@@ -1016,6 +1016,7 @@ var xhchart = (function () {
 
       g.append("path")
           .datum(option.dataArray)
+          // .style('stroke', 'url(#line-gradient-1)')
           .attr('class', 'chair-line')
           .attr("d", line);
     }
