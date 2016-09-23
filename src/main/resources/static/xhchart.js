@@ -802,6 +802,10 @@ var xhchart = (function () {
           .data([option.dataArray[index]]);
 
       var lampFill = function (d) {
+        if (d === undefined) {
+          return 'black';
+        }
+
         if (d.lamp === '' || d.lamp === 'blank') {
           return 'black';
         } else if (d.lamp === 'L') {
@@ -843,14 +847,15 @@ var xhchart = (function () {
           .data([option.dataArray[index]]);
 
       text.text(function (d) {
-        return d.lamp === 'U2' ? '2' : '';
+        return (d !== undefined && d.lamp === 'U2') ? '2' : '';
       });
+
       text.enter().append('text')
           .attr("x", cx - lampTextSize / 2)
           .attr("y", lampR)
           .attr("dy", ".35em")
           .text(function (d) {
-            return d.lamp === 'U2' ? '2' : '';
+            return (d !== undefined && d.lamp === 'U2') ? '2' : '';
           });
     }
 
@@ -1016,7 +1021,6 @@ var xhchart = (function () {
 
       g.append("path")
           .datum(option.dataArray)
-          // .style('stroke', 'url(#line-gradient-1)')
           .attr('class', 'chair-line')
           .attr("d", line);
     }
@@ -1492,9 +1496,9 @@ var xhchart = (function () {
     };
 
     function fixIndexOutRange(x) {
-      if (x >= option.dataArray.length) {
-        x = option.dataArray.length - 1;
-      }
+     if (x >= option.xAxisMax) {
+       x = option.xAxisMax - 1;
+     }
 
       if (x < 0) {
         x = 0;

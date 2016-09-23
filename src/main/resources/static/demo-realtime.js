@@ -27,14 +27,17 @@ $(function () {
                                  // index 是当前选中索引
                                  // data 是当前选择的 dataArray 里面的数据
                                  // 用户拖动改变竖线时触发
-                                 $('#time').text(dataFormat(data.date));
-                                 $('#speed').text(data.speed);
-                                 $('#stationNo').text(data.stationNo);
-                                 $('#voltage').text(data.voltage);
-                                 $('#lowFrequency').text(data.lowFrequency);
-                                 $('#carrierFrequency').text(data.carrierFrequency);
 
-                                 // ... 更新其他表格信息
+                                 if (data !== undefined) {
+                                   $('#time').text(dataFormat(data.date));
+                                   $('#speed').text(data.speed);
+                                   $('#stationNo').text(data.stationNo);
+                                   $('#voltage').text(data.voltage);
+                                   $('#lowFrequency').text(data.lowFrequency);
+                                   $('#carrierFrequency').text(data.carrierFrequency);
+                                   // ... 更新其他表格信息
+                                 }
+
                                }
                              });
 
