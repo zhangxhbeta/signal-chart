@@ -72,6 +72,7 @@ $(function () {
     'U2',   // 黄2灯
     'H',    // 红灯
     'B',    // 白灯
+    'C',    // 彩灯
     ''     // 空白无码
   ];
   var startLampIndex = Math.round(Math.random() * lampStates.length); // 初始灯颜色
@@ -253,6 +254,7 @@ $(function () {
 
   function generateNewData() {
 
+    var lampType;
     if (lampRandom == 0) {
       lampRandom = Math.round(Math.random() * 120 + 60);
 
@@ -262,9 +264,11 @@ $(function () {
 
       lamp = lampStates[startLampIndex];
       startLampIndex += Math.round(Math.random() * 3);
+      lampType = (Math.random() > 0.4) ? 'flash' : 'default';
     } else {
       lamp = lastData.lamp;
       lampRandom -= 1;
+      lampType = lastData.lampType;
     }
 
     var voltage = Math.round(Math.random() * 600 + voltageRandom * 2 + 300);
@@ -376,6 +380,7 @@ $(function () {
       // 'B'     白灯
       // ''      空白无码
       lamp: lamp,
+      lampType: lampType,                 // flash: 闪灯, default: 普通灯
       voltage: voltage,                   // 感应电压
       carrierFrequency: carrierFrequency, // 中心频/载频
       lowFrequency: lowFrequency,         // 低频

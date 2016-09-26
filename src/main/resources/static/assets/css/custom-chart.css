@@ -183,3 +183,10 @@ text.speed-label-tip {
   fill: #aa0;
   font-weight: bold;
 }
+
+path.lamp-flash-line {
+  fill: none;
+  stroke-width: 1;
+  stroke-opacity: 0.9;
+  stroke: '#a99';
+}

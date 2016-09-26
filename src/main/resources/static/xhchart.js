@@ -82,6 +82,11 @@ var xhchart = (function () {
     var timeoutHandler;
     var _svgSize;
 
+    // 闪灯的 interval 周期
+    var it;
+    var flashIndex = 0;
+    var flash = [0.3, 0.6, 0.9];
+
     // 初始化部分
     // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
     var size = _svgSize = calcChartSize();
@@ -424,6 +429,36 @@ var xhchart = (function () {
             return d.color;
           });
 
+      // 彩灯
+      defs.append("linearGradient")
+          .attr("id", "line-gradient-lamp-c")
+          .attr("x1", '0%').attr("y1", '0%')
+          .attr("x2", '0%').attr("y2", '100%')
+          .selectAll("stop")
+          .data([
+                  {offset: 1/7, color: "#fb111c"},
+                  {offset: 1/7, color: "#fc8511"},
+                  {offset: 2/7, color: "#fc8511"},
+                  {offset: 2/7, color: "#f3f112"},
+                  {offset: 3/7, color: "#f3f112"},
+                  {offset: 3/7, color: "#53ef08"},
+                  {offset: 4/7, color: "#53ef08"},
+                  {offset: 4/7, color: "#11faf4"},
+                  {offset: 5/7, color: "#11faf4"},
+                  {offset: 5/7, color: "#11a5fb"},
+                  {offset: 6/7, color: "#11a5fb"},
+                  {offset: 6/7, color: "#ef12f3"},
+                  {offset: 7/7, color: "#ef12f3"}
+                ])
+          .enter()
+          .append("stop")
+          .attr("offset", function (d) {
+            return d.offset;
+          })
+          .attr("stop-color", function (d) {
+            return d.color;
+          });
+
       // 灯带, 双黄
       defs.append("linearGradient")
           .attr("id", "line-gradient-lamp-belt-uu")
@@ -500,6 +535,36 @@ var xhchart = (function () {
                   {offset: "50%", color: "yellow"},
                   {offset: "50%", color: "white"},
                   {offset: "100%", color: "white"}
+                ])
+          .enter()
+          .append("stop")
+          .attr("offset", function (d) {
+            return d.offset;
+          })
+          .attr("stop-color", function (d) {
+            return d.color;
+          });
+
+      // 灯带, 彩灯
+      defs.append("linearGradient")
+          .attr("id", "line-gradient-lamp-belt-c")
+          .attr("x1", '0%').attr("y1", '0%')
+          .attr("x2", '0%').attr("y2", '100%')
+          .selectAll("stop")
+          .data([
+                  {offset: 1/7, color: "#fb111c"},
+                  {offset: 1/7, color: "#fc8511"},
+                  {offset: 2/7, color: "#fc8511"},
+                  {offset: 2/7, color: "#f3f112"},
+                  {offset: 3/7, color: "#f3f112"},
+                  {offset: 3/7, color: "#53ef08"},
+                  {offset: 4/7, color: "#53ef08"},
+                  {offset: 4/7, color: "#11faf4"},
+                  {offset: 5/7, color: "#11faf4"},
+                  {offset: 5/7, color: "#11a5fb"},
+                  {offset: 6/7, color: "#11a5fb"},
+                  {offset: 6/7, color: "#ef12f3"},
+                  {offset: 7/7, color: "#ef12f3"}
                 ])
           .enter()
           .append("stop")
@@ -796,10 +861,11 @@ var xhchart = (function () {
             .attr('transform', 'translate(0,' + lampBeltOffset + ')');
       }
 
+      var data = option.dataArray[index];
       var lampR = gridHeight * 1.5;
       var cx = option.labelLeftMargin + 44;
       var lamp = lampGroup.selectAll('circle')
-          .data([option.dataArray[index]]);
+          .data([data]);
 
       var lampFill = function (d) {
         if (d === undefined) {
@@ -857,6 +923,71 @@ var xhchart = (function () {
           .text(function (d) {
             return (d !== undefined && d.lamp === 'U2') ? '2' : '';
           });
+
+      // 闪灯效果
+      if (data.lampType === 'flash') {
+        intervalDrawLampFlash(lampGroup, cx, lampR);
+      } else {
+        clearInterval(it);
+        lampGroup.selectAll('path').remove();
+      }
+    }
+
+    /**
+     * 周期性的重绘闪灯效果
+     */
+    function intervalDrawLampFlash(lampGroup, cx, lampR) {
+      drawLampFlashLine(lampGroup, cx, lampR, flash[0]);
+
+      if (it !== undefined) {
+        clearInterval(it);
+      }
+
+      it = setInterval(function () {
+        var d = flash[flashIndex];
+        drawLampFlashLine(lampGroup, cx, lampR, d);
+        flashIndex ++;
+        if (flashIndex > flash.length - 1) {
+          flashIndex = 0;
+        }
+      }, 1000);
+    }
+
+    /**
+     * 模拟闪灯效果
+     */
+    function drawLampFlashLine(lampGroup, cx, lampR, d) {
+      lampGroup.selectAll('path').remove();
+      var angle = 0.6;
+      var hoffset = lampR;
+      var length = lampR * 0.5 * d;
+
+      // 计算从 0 点开始的角度/边长
+      var hstart = lampR * 1.3;
+      var hstart2 = hstart * Math.cos(angle);
+
+      var hend = hstart + length;
+      var hend2 = hend * Math.cos(angle);
+
+      var wstart = hstart * Math.sin(angle);
+      var wend = hend * Math.sin(angle);
+
+      var path = [
+        'M', cx, hstart + hoffset,
+        'L', cx, hend + hoffset,
+        'M', cx + wstart, hstart2 + hoffset,
+        'L', cx + wend, hend2 + hoffset,
+        'M', cx - wstart, hstart2 + hoffset,
+        'L', cx - wend, hend2 + hoffset,
+        'Z'
+      ];
+
+      lampGroup.append("path")
+          .attr('class', 'lamp-flash-line')
+          .attr("d", path.join(' '))
+          .style('fill', 'none')
+          .style('stroke-width', 1)
+          .style('stroke', '#a99');
     }
 
     /**
@@ -1496,9 +1627,9 @@ var xhchart = (function () {
     };
 
     function fixIndexOutRange(x) {
-     if (x >= option.xAxisMax) {
-       x = option.xAxisMax - 1;
-     }
+      if (x >= option.xAxisMax) {
+        x = option.xAxisMax - 1;
+      }
 
       if (x < 0) {
         x = 0;
