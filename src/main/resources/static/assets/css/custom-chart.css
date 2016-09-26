@@ -186,7 +186,6 @@ text.speed-label-tip {
 
 path.lamp-flash-line {
   fill: none;
-  stroke-width: 1;
-  stroke-opacity: 0.9;
-  stroke: '#a99';
+  stroke-width: 1.5;
+  stroke: #a00;
 }

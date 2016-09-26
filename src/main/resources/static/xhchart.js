@@ -84,8 +84,8 @@ var xhchart = (function () {
 
     // 闪灯的 interval 周期
     var it;
-    var flashIndex = 0;
-    var flash = [0.3, 0.6, 0.9];
+    var flashIndex = 0, flashAngle = 0.7;
+    var flash = [0, 0.7, 0.9];
 
     // 初始化部分
     // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
@@ -437,17 +437,11 @@ var xhchart = (function () {
           .selectAll("stop")
           .data([
                   {offset: 1/7, color: "#fb111c"},
-                  {offset: 1/7, color: "#fc8511"},
                   {offset: 2/7, color: "#fc8511"},
-                  {offset: 2/7, color: "#f3f112"},
                   {offset: 3/7, color: "#f3f112"},
-                  {offset: 3/7, color: "#53ef08"},
                   {offset: 4/7, color: "#53ef08"},
-                  {offset: 4/7, color: "#11faf4"},
                   {offset: 5/7, color: "#11faf4"},
-                  {offset: 5/7, color: "#11a5fb"},
                   {offset: 6/7, color: "#11a5fb"},
-                  {offset: 6/7, color: "#ef12f3"},
                   {offset: 7/7, color: "#ef12f3"}
                 ])
           .enter()
@@ -553,17 +547,11 @@ var xhchart = (function () {
           .selectAll("stop")
           .data([
                   {offset: 1/7, color: "#fb111c"},
-                  {offset: 1/7, color: "#fc8511"},
                   {offset: 2/7, color: "#fc8511"},
-                  {offset: 2/7, color: "#f3f112"},
                   {offset: 3/7, color: "#f3f112"},
-                  {offset: 3/7, color: "#53ef08"},
                   {offset: 4/7, color: "#53ef08"},
-                  {offset: 4/7, color: "#11faf4"},
                   {offset: 5/7, color: "#11faf4"},
-                  {offset: 5/7, color: "#11a5fb"},
                   {offset: 6/7, color: "#11a5fb"},
-                  {offset: 6/7, color: "#ef12f3"},
                   {offset: 7/7, color: "#ef12f3"}
                 ])
           .enter()
@@ -863,7 +851,7 @@ var xhchart = (function () {
 
       var data = option.dataArray[index];
       var lampR = gridHeight * 1.5;
-      var cx = option.labelLeftMargin + 44;
+      var cx = option.labelLeftMargin + 55;
       var lamp = lampGroup.selectAll('circle')
           .data([data]);
 
@@ -950,7 +938,7 @@ var xhchart = (function () {
         if (flashIndex > flash.length - 1) {
           flashIndex = 0;
         }
-      }, 1000);
+      }, 500);
     }
 
     /**
@@ -958,19 +946,23 @@ var xhchart = (function () {
      */
     function drawLampFlashLine(lampGroup, cx, lampR, d) {
       lampGroup.selectAll('path').remove();
-      var angle = 0.6;
+      var angle = flashAngle;
       var hoffset = lampR;
       var length = lampR * 0.5 * d;
 
       // 计算从 0 点开始的角度/边长
-      var hstart = lampR * 1.3;
+      var hstart = -lampR * 1.3;
       var hstart2 = hstart * Math.cos(angle);
+      var hstart3 = hstart * Math.cos(angle * 2);
 
-      var hend = hstart + length;
+      var hend = hstart - length;
       var hend2 = hend * Math.cos(angle);
+      var hend3 = hend * Math.cos(angle * 2);
 
       var wstart = hstart * Math.sin(angle);
+      var wstart2 = hstart * Math.sin(angle * 2);
       var wend = hend * Math.sin(angle);
+      var wend2 = hend * Math.sin(angle * 2);
 
       var path = [
         'M', cx, hstart + hoffset,
@@ -979,15 +971,16 @@ var xhchart = (function () {
         'L', cx + wend, hend2 + hoffset,
         'M', cx - wstart, hstart2 + hoffset,
         'L', cx - wend, hend2 + hoffset,
+        'M', cx + wstart2, hstart3 + hoffset,
+        'L', cx + wend2, hend3 + hoffset,
+        'M', cx - wstart2, hstart3 + hoffset,
+        'L', cx - wend2, hend3 + hoffset,
         'Z'
       ];
 
       lampGroup.append("path")
           .attr('class', 'lamp-flash-line')
-          .attr("d", path.join(' '))
-          .style('fill', 'none')
-          .style('stroke-width', 1)
-          .style('stroke', '#a99');
+          .attr("d", path.join(' '));
     }
 
     /**
