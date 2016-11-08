@@ -131,6 +131,7 @@ var xhchart = (function () {
 
     // 添加鼠标点击时的指示竖线
     var selectLine, selectTip, referenceLine; // 选择线, 选择线提示, 参考线, 也就是客户常说的主游标和副游标系统
+
     var dragSelectLine = d3.behavior.drag().on('drag', function () {
       d3.event.sourceEvent.stopPropagation();
 
@@ -186,6 +187,31 @@ var xhchart = (function () {
         trigOnSelectLineEvent();
       }
     });
+
+    // 默认选择最左边
+    selectLine = svg.append('line')
+        .attr('class', 'select-line')
+        .attr('x1', option.margin.left)
+        .attr('y1', option.margin.top)
+        .attr('x2', option.margin.left)
+        .attr('y2', size.height - option.margin.bottom)
+        .datum(0)
+        .call(dragSelectLine);
+
+    if (option.showReferenceLine) {
+      var pointX = xInSvg(0);
+      referenceLine = svg.append('line')
+          .attr('class', 'reference-line')
+          .attr('x1', pointX)
+          .attr('y1', option.margin.top)
+          .attr('x2', pointX)
+          .attr('y2', size.height - option.margin.bottom)
+          .datum(0)
+          .call(dragReferenceLine);
+    }
+
+    // 触发选择事件一次
+    trigOnSelectLineEvent();
 
     svg.on('click', function () {
       if (d3.event.defaultPrevented) {
@@ -1614,8 +1640,8 @@ var xhchart = (function () {
         }
       };
 
-      toggleDisplay(selectLine);
-      toggleDisplay(selectTip);
+      // toggleDisplay(selectLine);
+      // toggleDisplay(selectTip);
       toggleDisplay(referenceLine);
     };
 
