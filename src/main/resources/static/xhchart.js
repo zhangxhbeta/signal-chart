@@ -876,6 +876,16 @@ var xhchart = (function () {
       }
 
       var data = option.dataArray[index];
+
+      if (data === undefined) {
+        lampGroup.remove();
+        if (it !== undefined) {
+          clearInterval(it);
+          it = undefined;
+        }
+        return;
+      }
+
       var lampR = gridHeight * 1.5;
       var cx = option.labelLeftMargin + 55;
       var lamp = lampGroup.selectAll('circle')
@@ -943,6 +953,7 @@ var xhchart = (function () {
         intervalDrawLampFlash(lampGroup, cx, lampR);
       } else {
         clearInterval(it);
+        it = undefined;
         lampGroup.selectAll('path').remove();
       }
     }
@@ -955,6 +966,7 @@ var xhchart = (function () {
 
       if (it !== undefined) {
         clearInterval(it);
+        it = undefined;
       }
 
       it = setInterval(function () {
