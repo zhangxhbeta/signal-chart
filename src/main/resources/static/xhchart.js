@@ -44,6 +44,7 @@ var xhchart = (function () {
         bottom: 25,
         left: 150
       },
+      scale: 1,
       fontSize: initOption.fontSize || 14,
       labelLeftMargin: initOption.labelLeftMargin || 30, // 标签左边距
       firstDateLabelFormat: initOption.firstDateLabelFormat || d3.time.format('%Y-%m-%d'), // 坐标轴第一个值的标签格式
@@ -72,7 +73,19 @@ var xhchart = (function () {
       showReferenceLine: initOption.showReferenceLine !== undefined ? initOption.showReferenceLine
           : true, // 是否显示参考线(副游标)
       lineColor1: initOption.lineColor1 || '#04c6dd',
-      lineColor2: initOption.lineColor2 || '#b702cc'
+      lineColor2: initOption.lineColor2 || '#b702cc',
+      marginL: function () {
+        return option.margin.left * option.scale;
+      },
+      marginR: function () {
+        return option.margin.right * option.scale;
+      },
+      marginT: function () {
+        return option.margin.top * option.scale;
+      },
+      marginB: function () {
+        return option.margin.bottom * option.scale;
+      }
     };
 
     var fontSizeOffset = option.fontSize / 2;
@@ -99,8 +112,8 @@ var xhchart = (function () {
         .style('display', 'block');
 
     // svg 画布已准备妥当，开始准备图表元素
-    var height = size.height - option.margin.bottom - option.margin.top,
-        width = size.width - option.margin.left - option.margin.right;
+    var height = size.height - option.marginB() - option.marginT(),
+        width = size.width - option.marginL() - option.marginR();
     var gridHeight = height / gridSize;
     var gridWidth = width / option.xAxisMax;
 
@@ -110,7 +123,7 @@ var xhchart = (function () {
         .range([0, width]);
 
     // 计算子图表高度
-    var chartOffset = option.margin.top;
+    var chartOffset = option.marginT();
     var chartHeight = gridHeight * 20;
     var lampBeltOffset = chartOffset + chartHeight + gridHeight;
     var semaphoreOffset = lampBeltOffset + gridHeight * 4;
@@ -137,12 +150,12 @@ var xhchart = (function () {
 
       var e = d3.mouse(d3.select('#chart').node());
 
-      var l = x.invert(e[0] - option.margin.left);
+      var l = x.invert(e[0] / option.scale - option.margin.left);
       var index = Math.round(l);
       index = fixIndexOutRange(index);
 
       var pointX = xInSvg(l);
-      var pointY = e[1] - option.margin.top;
+      var pointY = e[1] / option.scale - option.margin.top;
 
       if (pointX < option.margin.left) {
         pointX = option.margin.left;
@@ -167,8 +180,11 @@ var xhchart = (function () {
       d3.event.sourceEvent.stopPropagation();
 
       var e = d3.mouse(d3.select('#chart').node());
-      var l = x.invert(e[0] - option.margin.left);
+
+      var l = x.invert(e[0] / option.scale - option.margin.left);
       var index = Math.round(l);
+      index = fixIndexOutRange(index);
+
       var pointX = xInSvg(l);
 
       if (pointX < option.margin.left) {
@@ -220,16 +236,17 @@ var xhchart = (function () {
 
       var e = d3.mouse(d3.select('#chart').node());
       // 点在外面的不处理
-      if (e[0] < option.margin.left || e[0] > (size.width - option.margin.right)) {
+      if (e[0] < option.marginL() || e[0] > (size.width - option.marginR())) {
         return;
       }
-      // 处理数据问题
-      var l = x.invert(e[0] - option.margin.left);
+      // 处理数据问题， 如果与原来相比有缩放，那么要处理缩放问题
+      var l = x.invert(e[0] / option.scale - option.margin.left);
       var index = Math.round(l);
       index = fixIndexOutRange(index);
 
       var pointX = xInSvg(l);
-      var pointY = e[1] - option.margin.top;
+
+      var pointY = e[1] - option.marginT();
       var referenceL = l - 100;
       var referencePointX = xInSvg(referenceL);
 
@@ -240,9 +257,9 @@ var xhchart = (function () {
           referenceLine = svg.append('line')
               .attr('class', 'reference-line')
               .attr('x1', referencePointX)
-              .attr('y1', option.margin.top)
+              .attr('y1', option.marginT())
               .attr('x2', referencePointX)
-              .attr('y2', size.height - option.margin.bottom)
+              .attr('y2', size.height - option.marginB())
               .datum(Math.round(referenceL))
               .call(dragReferenceLine);
         }
@@ -257,9 +274,9 @@ var xhchart = (function () {
         selectLine = svg.append('line')
             .attr('class', 'select-line')
             .attr('x1', pointX)
-            .attr('y1', option.margin.top)
+            .attr('y1', option.marginT())
             .attr('x2', pointX)
-            .attr('y2', size.height - option.margin.bottom)
+            .attr('y2', size.height - option.marginB())
             .datum(index)
             .call(dragSelectLine);
       }
@@ -267,7 +284,7 @@ var xhchart = (function () {
       if (!selectTip) {
         selectTip = svg.append('g')
             .attr('class', 'select-tip')
-            .attr('transform', 'translate(' + pointX + ',' + option.margin.top + ')')
+            .attr('transform', 'translate(' + pointX + ',' + option.marginT() + ')')
             .style('display', 'none');
 
         selectTip.append('rect')
@@ -332,7 +349,7 @@ var xhchart = (function () {
       });
 
       // 绘制 x 轴
-      drawXAxis(option.margin.top + height);
+      drawXAxis(option.marginT() + height);
     }
 
     function addDefs() {
@@ -728,7 +745,7 @@ var xhchart = (function () {
 
       svg.append('text')
           .attr("x", option.labelLeftMargin)
-          .attr("y", option.margin.top + height + fontSizeOffset)
+          .attr("y", option.marginT() + height + fontSizeOffset)
           .attr("dy", ".35em")
           .text('时间里程');
     }
@@ -764,7 +781,7 @@ var xhchart = (function () {
         // 添加组
         groupChart = svg.append('g')
             .attr('class', 'lineChart')
-            .attr('transform', 'translate(' + option.margin.left + ',' + chartOffset + ')');
+            .attr('transform', 'translate(' + option.marginL() + ',' + chartOffset + ')');
 
         groupChart.append("g")
             .attr("class", "grid")
@@ -1033,11 +1050,11 @@ var xhchart = (function () {
             .attr("width", width)
             .attr("height", lampBeltHeight + lampBeltMargin * 2)
             .attr('y', lampBeltOffset - lampBeltMargin)
-            .attr('x', option.margin.left);
+            .attr('x', option.marginL());
 
         lampBeltGroup = svg.append('g')
             .attr('class', 'lampBelt')
-            .attr('transform', 'translate(' + option.margin.left + ',' + lampBeltOffset + ')');
+            .attr('transform', 'translate(' + option.marginL() + ',' + lampBeltOffset + ')');
       }
 
       var prevIndex = 0;
@@ -1171,7 +1188,7 @@ var xhchart = (function () {
       svg.select('g.' + cls).remove();
       var g = svg.append('g')
           .attr('class', cls)
-          .attr('transform', 'translate(' + option.margin.left + ',' + seamaphoreOffset + ')');
+          .attr('transform', 'translate(' + option.marginL() + ',' + seamaphoreOffset + ')');
 
       var line = d3.svg.line()
           .x(function (d, i) {
@@ -1199,9 +1216,9 @@ var xhchart = (function () {
         // 先绘制底线
         svg.append('line')
             .attr('class', 'semaphore-under-line')
-            .attr('x1', option.margin.left)
+            .attr('x1', option.marginL())
             .attr('y1', seamaphoreOffset + semaphoreHeight)
-            .attr('x2', size.width - option.margin.right)
+            .attr('x2', size.width - option.marginR())
             .attr('y2', seamaphoreOffset + semaphoreHeight);
       } else {
         // 删掉原来绘制的
@@ -1212,7 +1229,7 @@ var xhchart = (function () {
       var heightUnit = semaphoreHeight / 6;
       g = svg.append('g')
           .attr('class', 'semaphore')
-          .attr('transform', 'translate(' + option.margin.left + ',' + seamaphoreOffset + ')');
+          .attr('transform', 'translate(' + option.marginL() + ',' + seamaphoreOffset + ')');
 
       // 过滤数据
       var lastIndexData;
@@ -1359,7 +1376,7 @@ var xhchart = (function () {
 
       var g = svg.append("g")
           .attr("class", "axis")
-          .attr("transform", "translate(" + option.margin.left + "," + xAxisOffset + ")")
+          .attr("transform", "translate(" + option.marginL() + "," + xAxisOffset + ")")
           .call(xAxis);
 
       // 绘制上电标志
@@ -1439,6 +1456,9 @@ var xhchart = (function () {
     function updateSize() {
       _svgSize = calcChartSize();
       svg.attr('height', _svgSize.height);
+
+      // 计算缩放比例
+      option.scale = _svgSize.width / size.width;
     }
 
     function xInSvg(index) {
