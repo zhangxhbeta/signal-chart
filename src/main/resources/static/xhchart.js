@@ -215,14 +215,15 @@ var xhchart = (function () {
         .call(dragSelectLine);
 
     if (option.showReferenceLine) {
-      var pointX = xInSvg(0);
+      var half = Math.round(option.xAxisMax / 2);
+      var pointX = xInSvg(half);
       referenceLine = svg.append('line')
           .attr('class', 'reference-line')
           .attr('x1', pointX)
           .attr('y1', option.margin.top)
           .attr('x2', pointX)
           .attr('y2', size.height - option.margin.bottom)
-          .datum(0)
+          .datum(half)
           .call(dragReferenceLine);
     }
 
