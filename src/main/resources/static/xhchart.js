@@ -95,10 +95,11 @@ var xhchart = (function () {
     var timeoutHandler;
     var _svgSize;
 
-    // 闪灯的 interval 周期
+    // 闪灯发光效果的 interval 周期
     var it;
     var flashIndex = 0, flashAngle = 0.7;
     var flash = [0, 0.7, 0.9];
+    var flashToggle = true;
 
     // 初始化部分
     // 获取当前 chart 可用宽度, 然后根据比例算出可用高度
@@ -883,7 +884,7 @@ var xhchart = (function () {
     /**
      * 绘制实时灯状态
      */
-    function drawLamp(lampBeltOffset, index) {
+    function drawLamp(lampBeltOffset, index, flash) {
       // 绘制当前灯
       var lampGroup = svg.select('g.lamp');
       if (lampGroup.size() == 0) {
@@ -906,12 +907,26 @@ var xhchart = (function () {
 
       var lampR = gridHeight * 1.5;
       var cx = option.labelLeftMargin + 55;
-      var lamp = lampGroup.selectAll('circle')
-          .data([data]);
+
+      // 绘制闪灯不显示
+      var lamp;
+      if (flash) {
+        lamp = lampGroup.selectAll('circle')
+            .data([data, 'the_light']);
+      } else {
+        lamp = lampGroup.selectAll('circle')
+            .data([{
+              lamp: 'OFF'
+            }, 'the_light']);
+      }
 
       var lampFill = function (d) {
         if (d === undefined) {
           return 'black';
+        }
+
+        if (d === 'the_light') {
+          return 'url(#radial-gradient-lamp)';
         }
 
         if (d.lamp === '' || d.lamp === 'blank') {
@@ -924,6 +939,8 @@ var xhchart = (function () {
           return 'red';
         } else if (d.lamp === 'B') {
           return 'white';
+        } else if (d.lamp === 'OFF') {
+          return 'lightgray';
         }
 
         if (d.lamp === undefined) {
@@ -940,19 +957,19 @@ var xhchart = (function () {
           .attr('cy', lampR)
           .attr('r', lampR)
           .style('fill', lampFill);
+      lamp.exit().remove();
 
-      // 遮一层高光
-      lamp.enter()
-          .append('circle')
-          .attr('cx', cx)
-          .attr('cy', lampR)
-          .attr('r', lampR)
-          .style('fill', 'url(#radial-gradient-lamp)');
 
       // 黄2灯的字
       var lampTextSize = 8;
-      var text = lampGroup.selectAll('text')
-          .data([option.dataArray[index]]);
+      var text;
+      if (flash) {
+        text = lampGroup.selectAll('text')
+            .data([option.dataArray[index]]);
+      } else {
+        text = lampGroup.selectAll('text')
+            .data([]);
+      }
 
       text.text(function (d) {
         return (d !== undefined && d.lamp === 'U2') ? '2' : '';
@@ -965,15 +982,46 @@ var xhchart = (function () {
           .text(function (d) {
             return (d !== undefined && d.lamp === 'U2') ? '2' : '';
           });
+      text.exit().remove();
 
+      // 客户不要这个效果，就是上面发光的效果
       // 闪灯效果
-      if (data.lampType === 'flash') {
-        intervalDrawLampFlash(lampGroup, cx, lampR);
+      // if (data.lampType === 'flash') {
+      //   intervalDrawLampFlash(lampGroup, cx, lampR);
+      // } else {
+      //   clearInterval(it);
+      //   it = undefined;
+      //   lampGroup.selectAll('path').remove();
+      // }
+    }
+
+    /**
+     * 周期性的重绘闪灯，表现出来就是一闪一闪
+     */
+    function intervalDrawLamp(lampBeltOffset, index) {
+      // drawLampFlashLine(lampGroup, cx, lampR, flash[0]);
+      drawLamp(lampBeltOffset, index, true);
+
+      var data = option.dataArray[index];
+      if (data !== undefined && data.lampType === 'flash') {
+
+        if (it !== undefined) {
+          clearInterval(it);
+          it = undefined;
+        }
+
+        it = setInterval(function () {
+          flashToggle = !flashToggle;
+          drawLamp(lampBeltOffset, index, flashToggle);
+        }, 500);
+
       } else {
         clearInterval(it);
         it = undefined;
-        lampGroup.selectAll('path').remove();
+        flashToggle = true;
       }
+
+
     }
 
     /**
@@ -1586,7 +1634,7 @@ var xhchart = (function () {
     function updateSelectTip(selectTip, pointX, pointY, index) {
 
       // 绘制灯码
-      drawLamp(lampBeltOffset, index);
+      intervalDrawLamp(lampBeltOffset, index);
 
       var labelData = chartSelectTip(index);
       var mouseMargin = {
