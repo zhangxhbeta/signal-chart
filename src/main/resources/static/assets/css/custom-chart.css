@@ -189,3 +189,17 @@ path.lamp-flash-line {
   stroke-width: 1.5;
   stroke: #a00;
 }
+
+text.toggler-on {
+  fill: green;
+  cursor: pointer;
+  font-size: 12pt;
+  font-weight: bold;
+}
+
+text.toggler-off {
+  fill: black;
+  cursor: pointer;
+  font-size: 12pt;
+  font-weight: bold;
+}

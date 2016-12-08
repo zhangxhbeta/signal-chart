@@ -85,7 +85,11 @@ var xhchart = (function () {
       },
       marginB: function () {
         return option.margin.bottom * option.scale;
-      }
+      },
+      currentReceiveDataToggle: true,
+      onStreamSwitch: initOption.onStreamSwitch,  // 开关数据流
+      streamOnText: initOption.streamOnText || '数据流打开',
+      streamOffText: initOption.streamOffText || '数据流已关闭'
     };
 
     var fontSizeOffset = option.fontSize / 2;
@@ -126,6 +130,7 @@ var xhchart = (function () {
     // 计算子图表高度
     var chartOffset = option.marginT();
     var chartHeight = gridHeight * 20;
+    var receiveDataTogglerOffset = chartOffset + chartHeight - fontSizeOffset * 4;
     var lampBeltOffset = chartOffset + chartHeight + gridHeight;
     var semaphoreOffset = lampBeltOffset + gridHeight * 4;
     var semaphoreHeight = gridHeight * 6;
@@ -619,7 +624,7 @@ var xhchart = (function () {
           .attr('x', 0)
           .attr('y', chartOffset + fontSizeOffset)
           .attr('dy', '.35em')
-          .text(toggleText(option.currentVoltageToggle))
+          .text(checkerText(option.currentVoltageToggle))
           .on('click', function () {
             option.currentVoltageToggle = !option.currentVoltageToggle;
             updateVoltage(0);
@@ -643,7 +648,7 @@ var xhchart = (function () {
           .attr('x', 0)
           .attr('y', chartOffset + fontSizeOffset + option.fontSize + chartLabelMarginTop)
           .attr('dy', '.35em')
-          .text(toggleText(option.currentCarrierFrequencyIndexToggle))
+          .text(checkerText(option.currentCarrierFrequencyIndexToggle))
           .on('click', function () {
             option.currentCarrierFrequencyIndexToggle = !option.currentCarrierFrequencyIndexToggle;
             updateCarrierFrequency(0);
@@ -667,7 +672,7 @@ var xhchart = (function () {
           .attr('x', 0)
           .attr('y', chartOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 2)
           .attr('dy', '.35em')
-          .text(toggleText(option.currentLowFrequencyToggle))
+          .text(checkerText(option.currentLowFrequencyToggle))
           .on('click', function () {
             option.currentLowFrequencyToggle = !option.currentLowFrequencyToggle;
             updateLowFrequency(0);
@@ -691,7 +696,7 @@ var xhchart = (function () {
           .attr('x', 0)
           .attr('y', chartOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 3)
           .attr('dy', '.35em')
-          .text(toggleText(option.currentLowFrequencyToggle))
+          .text(checkerText(option.currentLowFrequencyToggle))
           .on('click', function () {
             option.currentSpeedToggle = !option.currentSpeedToggle;
             updateSpeed(0);
@@ -749,7 +754,24 @@ var xhchart = (function () {
           .attr("x", option.labelLeftMargin)
           .attr("y", option.marginT() + height + fontSizeOffset)
           .attr("dy", ".35em")
-          .text('时间里程');
+          .text('时间');
+
+      var receiveDataToggler = svg.append('text')
+          .attr('id', 'receiveDataToggle')
+          .attr('class', 'toggler-on')
+          .attr('x', 0)
+          .attr('y', receiveDataTogglerOffset)
+          .attr('dy', '.35em')
+          .text(togglerText(option.currentReceiveDataToggle))
+          .on('click', function () {
+            option.currentReceiveDataToggle = !option.currentReceiveDataToggle;
+            receiveDataToggler.text(togglerText(option.currentReceiveDataToggle))
+                .attr('class', option.currentReceiveDataToggle ? 'fontawesome toggler-on' : 'fontawesome toggler-off');
+
+            if (option.onStreamSwitch !== undefined) {
+              option.onStreamSwitch(option.currentReceiveDataToggle);
+            }
+          });
     }
 
     /**
@@ -1568,23 +1590,23 @@ var xhchart = (function () {
 
     function updateVoltageLabel() {
       d3.select('#voltageLabel').text(voltageText());
-      d3.select('#voltageLabelToggle').text(toggleText(option.currentVoltageToggle))
+      d3.select('#voltageLabelToggle').text(checkerText(option.currentVoltageToggle))
     }
 
     function updateCarrierFrequencyLabel() {
       d3.select('#carrierFrequencyLabel').text(carrierFrequencyText());
       d3.select('#carrierFrequencyLabelToggle')
-          .text(toggleText(option.currentCarrierFrequencyIndexToggle));
+          .text(checkerText(option.currentCarrierFrequencyIndexToggle));
     }
 
     function updateLowFrequencyLabel() {
       d3.select('#lowFrequencyLabel').text(lowFrequencyText());
-      d3.select('#lowFrequencyLabelToggle').text(toggleText(option.currentLowFrequencyToggle));
+      d3.select('#lowFrequencyLabelToggle').text(checkerText(option.currentLowFrequencyToggle));
     }
 
     function updateSpeedLabel() {
       d3.select('#speedLabel').text(speedText());
-      d3.select('#speedLabelToggle').text(toggleText(option.currentSpeedToggle));
+      d3.select('#speedLabelToggle').text(checkerText(option.currentSpeedToggle));
     }
 
     function voltageText() {
@@ -1603,8 +1625,12 @@ var xhchart = (function () {
       return '速度 ' + option.speedMaxs[option.currentSpeedMaxIndex] + '(km/h)';
     }
 
-    function toggleText(toggle) {
-      return toggle ? "\uf046" : '\uf096'
+    function checkerText(toggle) {
+      return toggle ? "\uf046" : '\uf096';
+    }
+
+    function togglerText(toggle) {
+      return toggle ? option.streamOnText : option.streamOffText;
     }
 
     function chartSelectTip(i) {

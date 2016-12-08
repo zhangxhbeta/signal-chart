@@ -38,6 +38,9 @@ $(function () {
                                    // ... 更新其他表格信息
                                  }
 
+                               },
+                               onStreamSwitch: function (status) {
+                                 alert(status ? '准备打开' : '准备关闭');
                                }
                              });
 
@@ -333,7 +336,8 @@ $(function () {
         stationName: stationName,           // 车站名
         stationNo: stationNo,               // 车站号
         seamaphoreNo: seamaphoreNo,         // 信号机号
-        seamaphoreState: eventCount % 100 < 0 ? '' : seamaphoreState,   // 信号机状态, 通过 'pass', 预告 'notice', 进站
+        seamaphoreState: eventCount % 100 < 0 ? '' : seamaphoreState,   // 信号机状态, 通过 'pass', 预告
+                                                                        // 'notice', 进站
                                             // 'in', 出站 'out', 其他 ''
         upDown: upDown,                     // 上行/下行标志, 上行 'S', 下行 'X', 无效 ''
         insulation: insulation,             // 绝缘, 0 / 1 / -1或undefined (无效)
