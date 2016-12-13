@@ -86,7 +86,7 @@ var xhchart = (function () {
       marginB: function () {
         return option.margin.bottom * option.scale;
       },
-      currentReceiveDataToggle: true,
+      currentReceiveDataToggle: initOption.currentReceiveDataToggle !== undefined ? initOption.currentReceiveDataToggle : true,
       onStreamSwitch: initOption.onStreamSwitch,  // 开关数据流
       streamOnText: initOption.streamOnText || '数据流打开',
       streamOffText: initOption.streamOffText || '数据流已关闭'
@@ -758,7 +758,7 @@ var xhchart = (function () {
 
       var receiveDataToggler = svg.append('text')
           .attr('id', 'receiveDataToggle')
-          .attr('class', 'toggler-on')
+          .attr('class', option.currentReceiveDataToggle ? 'toggler-on' : 'toggler-off')
           .attr('x', 0)
           .attr('y', receiveDataTogglerOffset)
           .attr('dy', '.35em')
@@ -916,7 +916,7 @@ var xhchart = (function () {
             .attr('transform', 'translate(0,' + lampBeltOffset + ')');
       }
 
-      var data = option.dataArray[index];
+      var data = getFixLampData(index);
 
       if (data === undefined) {
         lampGroup.remove();
@@ -1024,7 +1024,7 @@ var xhchart = (function () {
       // drawLampFlashLine(lampGroup, cx, lampR, flash[0]);
       drawLamp(lampBeltOffset, index, true);
 
-      var data = option.dataArray[index];
+      var data = getFixLampData(index);
       if (data !== undefined && data.lampType === 'flash') {
 
         if (it !== undefined) {
@@ -1761,6 +1761,22 @@ var xhchart = (function () {
         x = 0;
       }
       return x;
+    }
+
+    /**
+     * 针对闪灯特殊的方法获取数据
+     * @param index
+     */
+    function getFixLampData(index) {
+      var data = option.dataArray[index];
+      if (index > 0) {
+        var prev = option.dataArray[index - 1];
+        if (prev.lampType === 'flash' && (data.lamp === 'black' || data.lamp === '')) {
+          // 前一秒数据是闪灯
+          data = prev;
+        }
+      }
+      return data;
     }
 
     return {

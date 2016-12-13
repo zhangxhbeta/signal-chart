@@ -39,6 +39,7 @@ $(function () {
                                  }
 
                                },
+                               currentReceiveDataToggle: false,
                                onStreamSwitch: function (status) {
                                  alert(status ? '准备打开' : '准备关闭');
                                }
