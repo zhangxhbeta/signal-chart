@@ -906,7 +906,7 @@ var xhchart = (function () {
     /**
      * 绘制实时灯状态
      */
-    function drawLamp(lampBeltOffset, index, flash) {
+    function drawLamp(lampBeltOffset, data, flash) {
       // 绘制当前灯
       var lampGroup = svg.select('g.lamp');
       if (lampGroup.size() == 0) {
@@ -915,9 +915,7 @@ var xhchart = (function () {
             .attr('class', 'lamp')
             .attr('transform', 'translate(0,' + lampBeltOffset + ')');
       }
-
-      var data = getFixLampData(index);
-
+      
       if (data === undefined) {
         lampGroup.remove();
         if (it !== undefined) {
@@ -987,7 +985,7 @@ var xhchart = (function () {
       var text;
       if (flash) {
         text = lampGroup.selectAll('text')
-            .data([option.dataArray[index]]);
+            .data([data]);
       } else {
         text = lampGroup.selectAll('text')
             .data([]);
@@ -1020,11 +1018,10 @@ var xhchart = (function () {
     /**
      * 周期性的重绘闪灯，表现出来就是一闪一闪
      */
-    function intervalDrawLamp(lampBeltOffset, index) {
+    function intervalDrawLamp(lampBeltOffset, data) {
       // drawLampFlashLine(lampGroup, cx, lampR, flash[0]);
-      drawLamp(lampBeltOffset, index, true);
+      drawLamp(lampBeltOffset, data, true);
 
-      var data = getFixLampData(index);
       if (data !== undefined && data.lampType === 'flash') {
 
         if (it !== undefined) {
@@ -1034,7 +1031,7 @@ var xhchart = (function () {
 
         it = setInterval(function () {
           flashToggle = !flashToggle;
-          drawLamp(lampBeltOffset, index, flashToggle);
+          drawLamp(lampBeltOffset, data, flashToggle);
         }, 500);
 
       } else {
@@ -1660,7 +1657,7 @@ var xhchart = (function () {
     function updateSelectTip(selectTip, pointX, pointY, index) {
 
       // 绘制灯码
-      intervalDrawLamp(lampBeltOffset, index);
+      intervalDrawLamp(lampBeltOffset, getFixLampData(index));
 
       var labelData = chartSelectTip(index);
       var mouseMargin = {
@@ -1769,7 +1766,7 @@ var xhchart = (function () {
      */
     function getFixLampData(index) {
       var data = option.dataArray[index];
-      if (index > 0) {
+      if (index > 0 && data !== undefined) {
         var prev = option.dataArray[index - 1];
         if (prev.lampType === 'flash' && (data.lamp === 'black' || data.lamp === '')) {
           // 前一秒数据是闪灯
