@@ -336,7 +336,7 @@ var xhchart = (function () {
 
       // 绘制上/下行
       drawChairLine(upDownOffset, 'updown', function (d) {
-        return y(d.upDown === 'X' ? 1 : 0);
+        return y(d.upDown === 'S' ? 1 : 0);
       }, function (d) {
         return (d.upDown === 'X' || d.upDown === 'S');
       });
