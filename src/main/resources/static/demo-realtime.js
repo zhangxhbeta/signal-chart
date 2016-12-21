@@ -27,7 +27,7 @@ $(function () {
                                  // index 是当前选中索引
                                  // data 是当前选择的 dataArray 里面的数据
                                  // 用户拖动改变竖线时触发
-
+                                 
                                  if (data !== undefined) {
                                    $('#time').text(dataFormat(data.date));
                                    $('#speed').text(data.speed);

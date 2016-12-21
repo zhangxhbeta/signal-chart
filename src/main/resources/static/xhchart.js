@@ -139,6 +139,10 @@ var xhchart = (function () {
     var abOffset = upDownOffset + gridHeight * 4;
     var port12Offset = abOffset + gridHeight * 4;
 
+    // 灯带高度，灯带上下的 margin
+    var lampBeltHeight = gridHeight * 2.5;
+    var lampBeltMargin = gridHeight * 1.5 / 2;
+
     // 添加公共引用数据, 渐变
     addDefs();
 
@@ -317,7 +321,7 @@ var xhchart = (function () {
       drawChart(chartOffset, chartHeight);
 
       // 绘制灯带
-      drawLampBelt(lampBeltOffset, gridHeight * 2.5, gridHeight * 1.5 / 2);
+      drawLampBelt(lampBeltOffset);
 
       // 绘制信号机
       drawSemaphore(semaphoreOffset, semaphoreHeight);
@@ -357,6 +361,16 @@ var xhchart = (function () {
 
       // 绘制 x 轴
       drawXAxis(option.marginT() + height);
+
+      // 触发更新灯码
+      if (selectLine !== undefined) {
+        var index = fixIndexOutRange(selectLine.datum());
+        if (index < option.dataArray.length && index >= 0 || option.dataArray.length > option.xAxisMax) {
+          intervalDrawLamp(lampBeltOffset, getFixLampData(index));
+          trigOnSelectLineEvent();
+        }
+      }
+
     }
 
     function addDefs() {
@@ -764,13 +778,14 @@ var xhchart = (function () {
           .attr('dy', '.35em')
           .text(togglerText(option.currentReceiveDataToggle))
           .on('click', function () {
-            option.currentReceiveDataToggle = !option.currentReceiveDataToggle;
-            receiveDataToggler.text(togglerText(option.currentReceiveDataToggle))
-                .attr('class', option.currentReceiveDataToggle ? 'fontawesome toggler-on' : 'fontawesome toggler-off');
-
             if (option.onStreamSwitch !== undefined) {
+              option.currentReceiveDataToggle = !option.currentReceiveDataToggle;
+              receiveDataToggler.text(togglerText(option.currentReceiveDataToggle))
+                  .attr('class', option.currentReceiveDataToggle ? 'fontawesome toggler-on' : 'fontawesome toggler-off');
               option.onStreamSwitch(option.currentReceiveDataToggle);
+
             }
+
           });
     }
 
@@ -907,9 +922,24 @@ var xhchart = (function () {
      * 绘制实时灯状态
      */
     function drawLamp(lampBeltOffset, data, flash) {
+      var cx = option.labelLeftMargin + 55;
+      var lampR = gridHeight * 2.5 / 2;
+
       // 绘制当前灯
       var lampGroup = svg.select('g.lamp');
       if (lampGroup.size() == 0) {
+        // 绘制灯码背景
+        var lamp = lampBeltHeight + lampBeltMargin * 2;
+        var rr = 4;
+        svg.append('rect')
+            .attr('class', 'lamp-background')
+            .attr("width", lamp)
+            .attr("height", lamp)
+            .attr('rx', rr)
+            .attr('ry', rr)
+            .attr('y', lampBeltOffset - lampBeltMargin)
+            .attr('x', cx - lamp / 2);
+
         // 添加灯的分组
         lampGroup = svg.append('g')
             .attr('class', 'lamp')
@@ -924,9 +954,6 @@ var xhchart = (function () {
         }
         return;
       }
-
-      var lampR = gridHeight * 1.5;
-      var cx = option.labelLeftMargin + 55;
 
       // 绘制闪灯不显示
       var lamp;
@@ -949,7 +976,7 @@ var xhchart = (function () {
           return 'url(#radial-gradient-lamp)';
         }
 
-        if (d.lamp === '' || d.lamp === 'blank') {
+        if (d.lamp === '' || d.lamp === 'black') {
           return 'black';
         } else if (d.lamp === 'L') {
           return '#02c202';
@@ -960,7 +987,7 @@ var xhchart = (function () {
         } else if (d.lamp === 'B') {
           return 'white';
         } else if (d.lamp === 'OFF') {
-          return 'lightgray';
+          return 'black';
         }
 
         if (d.lamp === undefined) {
@@ -1109,7 +1136,7 @@ var xhchart = (function () {
     /**
      * 绘制灯带
      */
-    function drawLampBelt(lampBeltOffset, lampBeltHeight, lampBeltMargin) {
+    function drawLampBelt(lampBeltOffset) {
       // 添加灯带
       var lampBeltGroup = svg.select('g.lampBelt');
       if (lampBeltGroup.size() == 0) {
