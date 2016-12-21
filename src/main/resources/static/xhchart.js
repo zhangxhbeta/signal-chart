@@ -1178,7 +1178,7 @@ var xhchart = (function () {
           .data(lampDatas);
 
       var lampFill = function (d) {
-        if (d.lamp === '' || d.lamp === 'blank') {
+        if (d.lamp === '' || d.lamp === 'black') {
           return 'black';
         } else if (d.lamp === 'L') {
           return '#02c202';
