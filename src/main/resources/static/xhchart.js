@@ -86,7 +86,8 @@ var xhchart = (function () {
       marginB: function () {
         return option.margin.bottom * option.scale;
       },
-      currentReceiveDataToggle: initOption.currentReceiveDataToggle !== undefined ? initOption.currentReceiveDataToggle : true,
+      currentReceiveDataToggle: initOption.currentReceiveDataToggle !== undefined
+          ? initOption.currentReceiveDataToggle : true,
       onStreamSwitch: initOption.onStreamSwitch,  // 开关数据流
       streamOnText: initOption.streamOnText || '数据流打开',
       streamOffText: initOption.streamOffText || '数据流已关闭'
@@ -365,7 +366,8 @@ var xhchart = (function () {
       // 触发更新灯码
       if (selectLine !== undefined) {
         var index = fixIndexOutRange(selectLine.datum());
-        if (index < option.dataArray.length && index >= 0 || option.dataArray.length > option.xAxisMax) {
+        if (index < option.dataArray.length && index >= 0 || option.dataArray.length
+                                                             > option.xAxisMax) {
           intervalDrawLamp(lampBeltOffset, getFixLampData(index));
           trigOnSelectLineEvent();
         }
@@ -500,13 +502,13 @@ var xhchart = (function () {
           .attr("x2", '0%').attr("y2", '100%')
           .selectAll("stop")
           .data([
-                  {offset: 1/7, color: "#fb111c"},
-                  {offset: 2/7, color: "#fc8511"},
-                  {offset: 3/7, color: "#f3f112"},
-                  {offset: 4/7, color: "#53ef08"},
-                  {offset: 5/7, color: "#11faf4"},
-                  {offset: 6/7, color: "#11a5fb"},
-                  {offset: 7/7, color: "#ef12f3"}
+                  {offset: 1 / 7, color: "#fb111c"},
+                  {offset: 2 / 7, color: "#fc8511"},
+                  {offset: 3 / 7, color: "#f3f112"},
+                  {offset: 4 / 7, color: "#53ef08"},
+                  {offset: 5 / 7, color: "#11faf4"},
+                  {offset: 6 / 7, color: "#11a5fb"},
+                  {offset: 7 / 7, color: "#ef12f3"}
                 ])
           .enter()
           .append("stop")
@@ -610,13 +612,13 @@ var xhchart = (function () {
           .attr("x2", '0%').attr("y2", '100%')
           .selectAll("stop")
           .data([
-                  {offset: 1/7, color: "#fb111c"},
-                  {offset: 2/7, color: "#fc8511"},
-                  {offset: 3/7, color: "#f3f112"},
-                  {offset: 4/7, color: "#53ef08"},
-                  {offset: 5/7, color: "#11faf4"},
-                  {offset: 6/7, color: "#11a5fb"},
-                  {offset: 7/7, color: "#ef12f3"}
+                  {offset: 1 / 7, color: "#fb111c"},
+                  {offset: 2 / 7, color: "#fc8511"},
+                  {offset: 3 / 7, color: "#f3f112"},
+                  {offset: 4 / 7, color: "#53ef08"},
+                  {offset: 5 / 7, color: "#11faf4"},
+                  {offset: 6 / 7, color: "#11a5fb"},
+                  {offset: 7 / 7, color: "#ef12f3"}
                 ])
           .enter()
           .append("stop")
@@ -781,7 +783,8 @@ var xhchart = (function () {
             if (option.onStreamSwitch !== undefined) {
               option.currentReceiveDataToggle = !option.currentReceiveDataToggle;
               receiveDataToggler.text(togglerText(option.currentReceiveDataToggle))
-                  .attr('class', option.currentReceiveDataToggle ? 'fontawesome toggler-on' : 'fontawesome toggler-off');
+                  .attr('class', option.currentReceiveDataToggle ? 'fontawesome toggler-on'
+                      : 'fontawesome toggler-off');
               option.onStreamSwitch(option.currentReceiveDataToggle);
 
             }
@@ -945,7 +948,7 @@ var xhchart = (function () {
             .attr('class', 'lamp')
             .attr('transform', 'translate(0,' + lampBeltOffset + ')');
       }
-      
+
       if (data === undefined) {
         lampGroup.remove();
         if (it !== undefined) {
@@ -1005,7 +1008,6 @@ var xhchart = (function () {
           .attr('r', lampR)
           .style('fill', lampFill);
       lamp.exit().remove();
-
 
       // 黄2灯的字
       var lampTextSize = 8;
@@ -1067,7 +1069,6 @@ var xhchart = (function () {
         flashToggle = true;
       }
 
-
     }
 
     /**
@@ -1084,7 +1085,7 @@ var xhchart = (function () {
       it = setInterval(function () {
         var d = flash[flashIndex];
         drawLampFlashLine(lampGroup, cx, lampR, d);
-        flashIndex ++;
+        flashIndex++;
         if (flashIndex > flash.length - 1) {
           flashIndex = 0;
         }
@@ -1327,7 +1328,7 @@ var xhchart = (function () {
           .attr('transform', 'translate(' + option.marginL() + ',' + seamaphoreOffset + ')');
 
       // 过滤数据
-      var lastIndexData;
+      var lastIndexData = option.dataArray[0];
       var stationDatas = option.dataArray.reduce(
           function (previousValue, currentValue, currentIndex) {
 
@@ -1335,18 +1336,37 @@ var xhchart = (function () {
             if (currentValue.seamaphoreState === undefined || currentValue.seamaphoreState === '') {
               return previousValue;
             }
-
-            if (lastIndexData !== undefined &&
+            
+            if (currentValue.seamaphoreDraw !== undefined && currentValue.seamaphoreDraw === true) {
+              // 按照传过来的状态绘制
+              previousValue.push({
+                                   index: currentIndex,
+                                   value: {
+                                     stationName: currentValue.stationName,
+                                     stationNo: currentValue.stationNo,
+                                     seamaphoreNo: lastIndexData.seamaphoreNo,
+                                     seamaphoreState: lastIndexData.seamaphoreState,
+                                     upDown: currentValue.upDown
+                                   }
+                                 });
+            } else if (lastIndexData !== undefined &&
                 (lastIndexData.seamaphoreNo !== currentValue.seamaphoreNo
-                 || lastIndexData.seamaphoreState !== currentValue.seamaphoreState)) {
+                 && lastIndexData.seamaphoreState !== currentValue.seamaphoreState
+                 || lastIndexData.stationNo !== currentValue.stationNo)) {
               // 前一个状态和现在这个不同, 说明需要图表上绘制一下
               previousValue.push({
                                    index: currentIndex,
-                                   value: lastIndexData
+                                   value: {
+                                     stationName: currentValue.stationName,
+                                     stationNo: currentValue.stationNo,
+                                     seamaphoreNo: lastIndexData.seamaphoreNo,
+                                     seamaphoreState: lastIndexData.seamaphoreState,
+                                     upDown: currentValue.upDown
+                                   }
                                  });
+              lastIndexData = currentValue;
             }
 
-            lastIndexData = currentValue;
             return previousValue;
 
           }, []);
