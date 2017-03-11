@@ -130,6 +130,7 @@ var xhchart = (function () {
 
     // 计算子图表高度
     var chartOffset = option.marginT();
+    var labelOffset = option.marginT() + 15;
     var chartHeight = gridHeight * 20;
     var receiveDataTogglerOffset = chartOffset + chartHeight - fontSizeOffset * 4;
     var lampBeltOffset = chartOffset + chartHeight + gridHeight;
@@ -638,7 +639,7 @@ var xhchart = (function () {
           .attr('id', 'voltageLabelToggle')
           .attr('class', 'fontawesome voltage-label')
           .attr('x', 0)
-          .attr('y', chartOffset + fontSizeOffset)
+          .attr('y', labelOffset + fontSizeOffset)
           .attr('dy', '.35em')
           .text(checkerText(option.currentVoltageToggle))
           .on('click', function () {
@@ -650,7 +651,7 @@ var xhchart = (function () {
           .attr('id', 'voltageLabel')
           .attr('class', 'voltage-label')
           .attr("x", chartLabelMarginLeft)
-          .attr("y", chartOffset + fontSizeOffset)
+          .attr("y", labelOffset + fontSizeOffset)
           .attr("dy", ".35em")
           .text(voltageText())
           .on('click', function () {
@@ -662,7 +663,7 @@ var xhchart = (function () {
           .attr('id', 'carrierFrequencyLabelToggle')
           .attr('class', 'fontawesome carrier-frequency-label')
           .attr('x', 0)
-          .attr('y', chartOffset + fontSizeOffset + option.fontSize + chartLabelMarginTop)
+          .attr('y', labelOffset + fontSizeOffset + option.fontSize + chartLabelMarginTop)
           .attr('dy', '.35em')
           .text(checkerText(option.currentCarrierFrequencyIndexToggle))
           .on('click', function () {
@@ -674,7 +675,7 @@ var xhchart = (function () {
           .attr('id', 'carrierFrequencyLabel')
           .attr('class', 'carrier-frequency-label')
           .attr("x", chartLabelMarginLeft)
-          .attr("y", chartOffset + fontSizeOffset + option.fontSize + chartLabelMarginTop)
+          .attr("y", labelOffset + fontSizeOffset + option.fontSize + chartLabelMarginTop)
           .attr("dy", ".35em")
           .text(carrierFrequencyText())
           .on('click', function () {
@@ -686,7 +687,7 @@ var xhchart = (function () {
           .attr('id', 'lowFrequencyLabelToggle')
           .attr('class', 'fontawesome low-frequency-label')
           .attr('x', 0)
-          .attr('y', chartOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 2)
+          .attr('y', labelOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 2)
           .attr('dy', '.35em')
           .text(checkerText(option.currentLowFrequencyToggle))
           .on('click', function () {
@@ -698,7 +699,7 @@ var xhchart = (function () {
           .attr('id', 'lowFrequencyLabel')
           .attr('class', 'low-frequency-label')
           .attr("x", chartLabelMarginLeft)
-          .attr("y", chartOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 2)
+          .attr("y", labelOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 2)
           .attr("dy", ".35em")
           .text(lowFrequencyText())
           .on('click', function () {
@@ -710,7 +711,7 @@ var xhchart = (function () {
           .attr('id', 'speedLabelToggle')
           .attr('class', 'fontawesome speed-label')
           .attr('x', 0)
-          .attr('y', chartOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 3)
+          .attr('y', labelOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 3)
           .attr('dy', '.35em')
           .text(checkerText(option.currentLowFrequencyToggle))
           .on('click', function () {
@@ -722,7 +723,7 @@ var xhchart = (function () {
           .attr('id', 'speedLabel')
           .attr('class', 'speed-label')
           .attr("x", chartLabelMarginLeft)
-          .attr("y", chartOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 3)
+          .attr("y", labelOffset + fontSizeOffset + (option.fontSize + chartLabelMarginTop) * 3)
           .attr("dy", ".35em")
           .text(speedText())
           .on('click', function () {
@@ -1336,35 +1337,24 @@ var xhchart = (function () {
             if (currentValue.seamaphoreState === undefined || currentValue.seamaphoreState === '') {
               return previousValue;
             }
-            
+
             if (currentValue.seamaphoreDraw !== undefined && currentValue.seamaphoreDraw === true) {
               // 按照传过来的状态绘制
               previousValue.push({
                                    index: currentIndex,
-                                   value: {
-                                     stationName: currentValue.stationName,
-                                     stationNo: currentValue.stationNo,
-                                     seamaphoreNo: lastIndexData.seamaphoreNo,
-                                     seamaphoreState: lastIndexData.seamaphoreState,
-                                     upDown: currentValue.upDown
-                                   }
+                                   value: currentValue
                                  });
-            } else if (lastIndexData !== undefined &&
-                (lastIndexData.seamaphoreNo !== currentValue.seamaphoreNo
-                 && lastIndexData.seamaphoreState !== currentValue.seamaphoreState
-                 || lastIndexData.stationNo !== currentValue.stationNo)) {
+            } else if (currentValue.seamaphoreDraw === undefined && lastIndexData !== undefined &&
+                       (lastIndexData.seamaphoreNo !== currentValue.seamaphoreNo
+                        && lastIndexData.seamaphoreState !== currentValue.seamaphoreState
+                        || lastIndexData.stationNo !== currentValue.stationNo)) {
               // 前一个状态和现在这个不同, 说明需要图表上绘制一下
               previousValue.push({
                                    index: currentIndex,
-                                   value: {
-                                     stationName: currentValue.stationName,
-                                     stationNo: currentValue.stationNo,
-                                     seamaphoreNo: lastIndexData.seamaphoreNo,
-                                     seamaphoreState: lastIndexData.seamaphoreState,
-                                     upDown: currentValue.upDown
-                                   }
+                                   value: currentValue
                                  });
               lastIndexData = currentValue;
+
             }
 
             return previousValue;
